@@ -1,0 +1,222 @@
+Virtual machines
+================
+
+Recall from last few lectures:
+  OS kernel helps run multiple programs on single computer.
+  Provides virtual memory to protect programs from each other.
+  Provides system calls so that programs can interact.
+    E.g., send/receive, file system, ...
+  Provides threads to run multiple programs on few CPUs.
+  Can we rely on the OS kernel to work correctly?
+
+A few lectures ago, we briefly talked about different ways to structure an OS.
+
+Monolithic kernel: no enforced modularity (e.g., Linux).
+  Many good software engineering techniques used in practice.
+  But ultimately a bug in the kernel can affect entire system.
+
+[ slide: kernel is complex ]
+  We've seen this slide already, but this is critical to 6.033.
+  How can we deal with the complexity of such systems?
+  One result of all this complexity: bugs!
+  [ slide: 5000 bugs reported as fixed in ~7 years, or 2+ per day ]
+  These bug counts are likely a fraction of actual # bugs fixed.
+
+Demo: what happens if one of these bugs is triggered in a monolithic OS kernel?
+  Let's look at bugs that randomly corrupt memory.
+  Not entirely representative, but many bugs result in memory corruption.
+
+  host# cd scribble/vm ; ./qemu-cow.sh
+  guest# cd /n
+  guest# more main.c
+    - small Linux kernel module: runs as part of the kernel.
+    - every 10 seconds, randomly chooses N locations in physical memory.
+    - writes a random byte to that location.
+    - start with N=1, each time go up by a factor of 2x (1, 2, 4, 8, 16, ..)
+
+  Q: how many random memory corruptions does it take to crash Linux?
+    Who thinks 1?  16?  128?  1024?
+  guest# insmod scribble.ko
+
+  Periodically run ps, cat /etc/passwd, ls to see if system is working.
+
+Obviously not great that a kernel bug can cause a Linux system to fail.
+  Is it a good thing that Linux lasted this long?
+  Problems can be hard to detect, even though they may still do damage.
+    E.g., maybe my files are now corrupted, but system didn't crash.
+  Worse: adversary can exploit a bug to gain unauthorized access to system.
+    Will look at security in much more detail towards end of 6.033.
+
+Microkernel design: enforced modularity, subsystems in "user" programs.
+  E.g., file server, device driver, graphics, networking are programs.
+
+Why hasn't Linux been rewritten in a microkernel style?
+  Many dependencies between components in the kernel.
+    E.g., balance between memory used for file cache vs process memory.
+  Moving large components to microkernel-style programs does not win much.
+    If entire file system service crashes, might lose all data.
+  Better designs possible, but require a lot of careful design work.
+    E.g., could create one file server program per file system,
+          mount points tell FS client to talk to another FS server.
+    Trade-off: spend a year on new features vs. microkernel rewrite.
+    Microkernel design may make it more difficult to change interfaces later.
+  Some parts of Linux have microkernel design aspects:
+    X server, some USB drivers, printing, SQL database, DNS, SSH, ...
+      Can restart these components without crashing kernel or other programs.
+
+Problem: deal with Linux kernel bugs without redesigning Linux from scratch.
+  One idea: run different programs on different computers.
+  Each computer has its own Linux kernel; if one crashes, others not affected.
+  Strong isolation (all interactions are client-server), but often impractical.
+  Can't afford so many physical computers: hardware cost, power, space, ..
+
+Goal: run multiple instances of Linux on a single computer.
+  Sounds similar to running multiple programs on a single computer.
+  Original OS techniques: virtualization + abstractions.
+  New constraint: compatibility, because we want to run existing Linux kernel.
+  Linux kernel written to run on regular hardware.
+    No abstractions, pure virtualization.
+  Approach is called "virtual machines" (VM): providing a virtual machine.
+    Each virtual machine is often called a guest.
+  The equivalent of a kernel is called a "virtual machine monitor" (VMM).
+    The VMM is often called the host.
+  My laptop was running Linux inside of a virtual machine for the demo.
+    Provides enforced modularity.
+    Even though Linux inside the VM failed, rest of system is fine.
+
+Naive approach: can emulate every single instruction from the guest OS.
+  In practice, this is sometimes done, but often too slow in practice.
+  Want to run most instructions directly on the CPU, like a regular OS kernel.
+
+Computer state that must be virtualized for an existing OS kernel:
+  Memory.
+  Page table pointer (PTP), points to a page table in memory.
+  U/K bit.
+  More in practice (e.g., interrupts, registers), but techniques are similar.
+  Diagram:
+    OS kernel on top of HW, hardware contains memory, PTP, page table, U/K bit.
+    Two copies of kernel + HW.
+    VMM needs to implement virtual hardware using physical hardware.
+  Start w/ simple hw: only one PTP, page table, U/K bit in real hw below VMM.
+
+Virtualizing memory: same idea as in an OS kernel.
+  VMM constructs a page table that maps guest addrs to host physical addrs.
+  E.g., if guest VM has 1GB of memory, it can access memory addrs 0..1GB.
+  Each guest VM has its own mapping for memory address 0, etc.
+  Different host physical addrs used to store data for those memory locations.
+
+Virtualizing the PTP register / page tables.
+  Can we load the address of guest VM's page table into PTP register?
+  Terminology: 3 levels of addressing now.
+    Guest virtual.
+    Guest physical.
+    Host physical.
+  Guest VM's page table contains guest physical addrs.
+  Hardware page table must point to host physical addrs (actual DRAM locations).
+  Setting hardware PTP register to point to guest page table would not work.
+    Processes in guest VM might access host physical addrs 0..1GB.
+    But those host physical addresses might not belong to that guest VM.
+
+One solution: shadow pages.
+  [ slide: set_ptp ]
+  VMM intercepts guest OS setting the virtual PTP register.
+  VMM iterates over the guest page table, constructs a corresponding shadow PT.
+  In shadow PT, every guest physical addr is translated into host physical addr.
+  Finally, VMM loads the host physical addr of the shadow PT.
+
+What happens if guest OS modifies its page table?
+  Real hardware would start using the new page table's mappings.
+    (Some details omitted here..)
+  Virtual machine monitor has a separate shadow page table.
+  Goal: VMM needs to intercept when guest OS modifies page table,
+        update shadow page table accordingly.
+  Technique: use the read/write bit in the PTE to mark those pages read-only.
+  If guest OS tries to modify them, hardware triggers page fault.
+  Page fault handled by VMM: update shadow page table & restart guest.
+
+Virtualizing the U/K bit.
+  Hardware U/K bit should be set to 'U': otherwise guest OS can do anything.
+  Behavior affected by the U/K bit:
+    1. Whether privileged instructions can be executed (e.g., load PTP).
+    2. Whether pages marked "kernel-only" in page table can be accessed.
+  Implementing a virtual U/K bit:
+    VMM stores the current state of guest's U/K bit (in some memory location).
+    Privileged instructions in guest code will cause an exception (U mode).
+    VMM exception handler's job will be to emulate these instructions.
+      Approach is called "trap and emulate".
+    [ slide: set_ptp_exception ]
+      E.g., if load PTP instruction runs in virtual K mode, load shadow PT.
+      Otherwise, send an exception to the guest OS, so it can handle it.
+  How do we selectively allow / deny access to kernel-only pages in guest PT?
+    Hardware doesn't know about our virtual U/K bit.
+    Idea: generate two shadow page tables, one for U, one for K.
+    [ slide: set_ptp with kmode argument ]
+    When guest OS switches to U mode, VMM must invoke set_ptp(current, 0).
+
+Hard: what if some instructions don't cause an exception?
+  E.g., on x86, can always read the current U/K bit value.
+    Guest OS kernel might observe it's running in U mode, expecting K.
+  Similarly, can jump to U mode from both U & K modes.
+    How to intercept switch to U mode to replace shadow page table?
+
+Approach 1: "para-virtualization".
+  Modify the OS slightly to account for these differences.
+  Compromises on our goal of compatibility.
+  Recall: goal was to run multiple instances of the OS on a single computer.
+    Not perfect virtualization, but relatively easy to change Linux.
+    May be difficult to do with Windows, without Microsoft's help.
+
+Approach 2: binary translation.
+  VMM analyzes code from the guest VM.
+  Replaces problematic instructions with an instruction that traps.
+  Once we can generate a trap, can emulate the desired behavior.
+  Original versions of VMware did this.
+  Paper for tomorrow's recitation describes this approach in more detail.
+
+Approach 3: hardware support.
+  Recently (2005-08) AMD + Intel added virtualization support to their CPUs:
+    Special "VMM" operating mode, in addition to U/K bit.
+    Two levels of page tables, implemented in hardware.
+  Makes the VMM's job much easier:
+    Let the guest VM manipulate the U/K bit, as long as VMM bit is cleared.
+    Let the guest VM manipulate the guest PT, as long as host PT is set.
+  Many modern VMMs take this approach.
+  Paper for tomorrow's recitation discusses design tradeoffs.
+
+Virtualizing devices (e.g., disk), simplified:
+  OS kernel accesses disk by issuing special instructions to access I/O memory.
+  These instructions only accessible in K mode, and raise an exception.
+  VMM handles exception by simulating a disk operation.
+  Actual disk contents is typically stored in a file in the host file system.
+
+Demo:
+  What does a VM look like in a Linux system?
+  E.g., a Windows XP virtual machine:
+
+  % cd winxp
+  % ls -l
+
+  12GB file stores the VM's virtual disk.
+  To the OS inside the VM, the data appears to be stored on a regular disk.
+
+  % kvm ./winxp.img &
+  % ps ax | grep kvm
+
+  The entire VM is just another process on the Linux system.
+
+Benefits of running an OS in a virtual machine.
+  Can share hardware between unrelated services, with enforced modularity.
+  Can run different OSes (Linux, Windows, etc).
+  Level-of-indirection tricks: can move VM from one physical machine to another.
+
+How do VMs relate to microkernels?
+  Solving somewhat orthogonal problems.
+  Microkernel: splitting up monolithic kernel into client/server components.
+  VMs: how to run many instances of an existing OS kernel.
+  E.g., can use VMM to run one network file server VM and one application VM.
+  Hard problem still present.
+    Entire file server fails at once?
+    Or, more complex design with many file servers.
+
+[ slide: summary ]
+

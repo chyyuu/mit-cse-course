@@ -1,0 +1,236 @@
+<html><head><title>6.033: Hands-on Assignment (Valgrind)</title></head><body bgcolor="White" text="Black">
+
+<a name="top">
+<h4>
+<em>
+<p align="center">
+M.I.T. DEPARTMENT OF EECS
+</p>
+</em>
+</h4>
+</a>
+<!-- RULE: h-header -->
+
+<table width="100%">
+<tbody><tr>
+<td align="left"><strong>6.033 - Computer System Engineering</strong>
+</td><td align="right"><strong>Valgrind Assignment</strong>
+</td></tr></tbody></table>
+
+<hr>
+
+<h2>Hands-on 3: valgrind</h2>
+
+<p>
+Complete the following hands-on assignment.  Do the activities
+described, and submit your solutions using the <a
+href="https://6033.scripts.mit.edu:444/submit.cgi">online submission site</a>
+by 11:59p.
+
+<p>This assignment relates to the Eraser paper, and exposes you to parallel
+programming with Pthreads, and understanding and fixing concurrency errors.  You
+might find it helpful to skim the Eraser paper, which is assigned for the next
+section.  You also might want to refresh your memory on what race conditions are
+and the troubles that they can cause by revisiting sections 5.2.2, 5.2.3, and
+5.2.4 of the textbook.
+
+<p>This assignment involves a small amount of programming.
+
+<h4>I. Warmup</h4>
+
+Add the 6.033 and gcc locker:
+<pre>
+  no-knife:~> add 6.033; add gcc
+</pre>
+
+Download the program <a href="ph.c">ph.c</a> and store it in a file
+<code>ph.c</code>. On a linux system, you might do:
+
+<pre>
+  no-knife:~> wget http://web.mit.edu/6.033/www/assignments/ph.c
+</pre>
+
+Then compile and run it with one thread:
+<pre>
+$ gcc -g -o ph ph.c -pthread
+$ ./ph 1
+completion time for put phase = 2.758351
+0: 0 keys missing
+completion time for get phase = 2.270119
+</pre>
+
+<p>The 1 specifies the number of threads that execute put and get operations on
+the the hash table.  The program inserts <code>NKEYS</code> into a hash table in
+the put phase and then looks them all up in the get phase.
+
+<p>Let's run with 2 threads.  Then each thread does <code>NKEYS/2</code> puts in
+the put phase and <code>NKEYS/2</code> lookups in the get phase.  The program is
+written in C, the default language for low-level systems programming, and uses 
+<a href="http://en.wikipedia.org/wiki/POSIX_Threads">pthreads</a> for creating
+several threads that can run in parallel if our machine has several cores
+(most processors today have at least 2 cores).
+
+<p>If we achieve perfect parallelism, then the two phases complete in half the
+time.  Here is the output:
+
+<pre>
+~/classes/6033-2013.git/wwwdocs/assignments$ ./ph 2
+completion time for put phase = 1.688109
+0: 27 keys missing
+1: 39 keys missing
+completion time for get phase = 3.215020
+</pre>
+
+<p>We see that put phase is faster now, so we were able to exploit 2 cores (but
+it didn't get twice as fast).  The get phase, however, is slower with 2 cores,
+which is disappointing: using more cores, the program ran slower.  More on that
+later, because there is a bigger problem.
+
+<p>You will likely observe that the code is incorrect. The application inserted
+27+39 keys in phase 1 that phase 2 couldn't find. In your runs, there may be
+more or fewer keys missing.  There may be even 0 keys missing in some runs.  If
+you run with 1 thread, there will never be any keys missing.
+
+<p>Run the application with 4 threads:
+<pre>
+~/classes/6033-2013.git/wwwdocs/assignments$ ./ph 4
+completion time for put phase = 1.113811
+0: 39 keys missing
+2: 31 keys missing
+3: 15 keys missing
+1: 37 keys missing
+completion time for get phase = 3.436008
+</pre> 
+
+<p>Three points: 1) the put runs faster with 4 cores than 2 cores, but not 4
+times as fast as a single core; 2) the get phase ran even slower; 3) more keys
+are missing.
+
+<h4>II. Using valgrind to find race condition</h4>
+
+<p>The <code>ph.c</code> program is simple, and you may be able to spot the
+mistake immediately, but we will use a tool, <code>helgrind</code> that helps 
+us find such errors automatically. <code>helgrind</code> is similar in spirit to
+the Eraser system that you are reading about, and is part of a suite of tools
+collectively called <code>valgrind</code>.
+
+<p>Run <code>helgrind</code> with <code>ph</code>. You will see output as follows:
+<pre>
+$ valgrind --tool=helgrind ./ph 2
+==8945== Helgrind, a thread error detector
+==8945== Copyright (C) 2007-2009, and GNU GPL'd, by OpenWorks LLP et al.
+==8945== Using Valgrind-3.6.0.SVN-Debian and LibVEX; rerun with -h for copyright info
+==8945== Command: ./ph 2
+==8945== 
+==8945== Thread #2 was created
+==8945==    at 0x513612E: clone (clone.S:77)
+==8945==    by 0x4E37172: pthread_create@@GLIBC_2.2.5 (createthread.c:75)
+==8945==    by 0x4C2C42C: pthread_create_WRK (hg_intercepts.c:230)
+==8945==    by 0x4C2C4CF: pthread_create@* (hg_intercepts.c:257)
+==8945==    by 0x4010B8: main (ph.c:148)
+==8945== 
+==8945== Thread #1 is the program's root thread
+==8945== 
+==8945== Possible data race during write of size 8 at 0x7ff000440 by thread #2
+==8945==    at 0x4C2C54C: mythread_wrapper (hg_intercepts.c:200)
+==8945==  This conflicts with a previous read of size 8 by thread #1
+==8945==    at 0x4C2C440: pthread_create_WRK (hg_intercepts.c:235)
+==8945==    by 0x4C2C4CF: pthread_create@* (hg_intercepts.c:257)
+==8945==    by 0x4010B8: main (ph.c:148)
+==8945== 
+==8945== Thread #3 was created
+==8945==    at 0x513612E: clone (clone.S:77)
+==8945==    by 0x4E37172: pthread_create@@GLIBC_2.2.5 (createthread.c:75)
+==8945==    by 0x4C2C42C: pthread_create_WRK (hg_intercepts.c:230)
+==8945==    by 0x4C2C4CF: pthread_create@* (hg_intercepts.c:257)
+==8945==    by 0x4010B8: main (ph.c:148)
+==8945== 
+==8945== Possible data race during read of size 4 at 0x1d47168 by thread #3
+==8945==    at 0x400C24: put (ph.c:61)
+==8945==    by 0x400EA1: put_thread (ph.c:98)
+==8945==    by 0x4C2C558: mythread_wrapper (hg_intercepts.c:202)
+==8945==    by 0x4E369C9: start_thread (pthread_create.c:300)
+==8945==    by 0x67D46FF: ???
+==8945==  This conflicts with a previous write of size 4 by thread #2
+==8945==    at 0x400CC6: put (ph.c:64)
+==8945==    by 0x400EA1: put_thread (ph.c:98)
+==8945==    by 0x4C2C558: mythread_wrapper (hg_intercepts.c:202)
+==8945==    by 0x4E369C9: start_thread (pthread_create.c:300)
+==8945==    by 0x5FD36FF: ???
+==8945== 
+==8945== 
+==8945== More than 10000000 total errors detected.  I'm not reporting any more.
+==8945== Final error counts will be inaccurate.  Go fix your program!
+==8945== Rerun with --error-limit=no to disable this cutoff.  Note
+==8945== that errors may occur in your program without prior warning from
+==8945== Valgrind, because errors are no longer being displayed.
+==8945== 
+</pre>
+
+<p><b>Question 1:</b> Study <code>helgrind</code>'s output and the
+<code>ph.c</code> program.  Clearly something is wrong with <code>put()</code>
+on line 61.  Why are there missing keys with 2 or more threads, but not with 1
+thread?  Identify a sequence of events that can lead to keys missing for 2
+threads.
+
+<h4>Fixing the error</h2>
+
+<p><p>To avoid this sequence of events, insert lock and unlock statements in
+<code>put</code> so that the number keys missing is always 0.  The relevant
+pthread calls are (for more see the manual pages, man pthread):
+
+<pre>
+pthread_mutex_t lock;     // declare a lock
+pthread_mutex_init(&lock, NULL);   // initialize the lock
+pthread_mutex_lock(&lock);  // acquire lock
+pthread_mutex_unlock(&lock);  // release lock
+</pre>
+
+<p>The function <code>get()</code> has an example use of locks, and
+<code>main</code> initializes it.
+
+<p>Modify <code>ph.c</code> to make it correct and recompile with gcc. Test your 
+code first with 1 thread, then test it with 2 threads.  Is it correct (i.e. have 
+you eliminated missing keys)?  Check the correctness using <code>helgrind</code>.  
+(Note that valgrind slows down <code>ph</code> a lot, so you may want to modify 
+NKEYS to be some small number.)
+
+<p><b>Question 2:</b> Describe your changes and argue why these changes ensure
+correctness.
+
+<p><b>Question 3:</b> Is the two-threaded version faster than the single-threaded
+version in the put phase?  Report the running times for the two-threaded version
+and the single-threaded version. (Make sure to undo your NKEYS change.)
+
+<p><b>Question 4:</b> Most likely (depending on your exact changes)
+<code>ph</code> won't achieve any speedup.  Why is that?
+
+<h4>Living dangerously</h4>
+
+<p>Remove the locks from <code>get()</code> in <code>ph.c</code>, recompile, and
+rerun the program.
+
+<p><b>Question 5:</b> You should observe speedup on several cores for the
+<code>get</code> phase of <code>ph</code>.  Why is that?
+
+<p><b>Question 6:</b> Why does <code>valgrind</code> report no errors for <code>get()</code>?
+
+<h4>Challenge</h4>
+
+<p><b>Question 7:</b> Can you think of a way of modifying <code>ph.c</code> so that you get speedup
+for <i>both</i> phases and <code>valgrind</code> won't report race conditions?  (If you
+have time, implement that plan and check.)
+
+<p><b>
+
+
+<!-- RULE: h-footer -->
+<hr>
+
+<table width="100%">
+<tbody><tr>
+<td align="left"><b>Go to <a href="../index.shtml">6.033 Home Page</a></b>
+</td></tr></tbody></table>
+
+
+</body></html>

@@ -1,0 +1,464 @@
+<html>
+<head>
+<title>6.033: Hands-on Assignment (CRYPTO)</title>
+</head>
+
+<body bgcolor=White text=Black>
+
+<a name="top">
+<h4>
+<em>
+<p align="center">
+M.I.T. DEPARTMENT OF EECS
+</p>
+</em>
+</h4>
+</a>
+<!-- RULE: h-header -->
+
+<table width=100%>
+<tr>
+<td align=left><strong>6.033 - Computer System Engineering</strong>
+<td align=right><strong>Crypto Hands-On Assignment</strong>
+</table>
+
+<hr>
+
+<h2>Hands-on 7: Cryptography and Certificates</h2>
+
+<p>Complete the following hands-on assignment. Do the activities described, and submit your solutions using the <a href="https://6033.scripts.mit.edu:444/submit.cgi">online submission site</a> before the <b>beginning of recitation</b>.</p>
+
+<p>
+The goal of this hands-on is to give you an introduction to
+mathematics and the algorithmic building blocks of moderns
+cryptographic protocols. Before attempting this hands-on, you
+should read Chapter 11 of the class notes. 
+</p>
+
+
+<h3>Part 1: Big Numbers and Brute-Force Attacks</h3>
+
+<p>One way to unseal a sealed message is to try every
+possible key. This kind of attack is known as a <i>brute-force attack</i> or
+a <i>key search</i> attack. The longer the key, the harder the attack.</p>
+
+<p>Keys are almost always represented as blocks of binary data.
+Some cryptographic transformations use a fixed number of bits,
+while others allow a variable
+number. The table below lists some common cryptographic transformations
+and the key sizes that they use:</p>
+
+<table>
+<tr><th>Cipher</th><th>Key Size </th></tr>
+<tr><td>The Data Encryption Standard (DES)</td>
+    <td>56 bits</td></tr>
+<tr><td><a href="http://www.rsa.com/rsalabs/node.asp?id=2249">RC-2</a></td><td>40-1024 bits</td></tr>
+<tr><td><a href="http://www.rsa.com/rsalabs/node.asp?id=2250">RC-4</a></td><td>40-1024 bits</td></tr>
+<tr><td>
+<a href="http://csrc.nist.gov/publications/fips/fips197/fips-197.pdf">
+Advanced Encryption Standard (AES)</a>
+</td><td>128, 192 or 256 bits</td></tr>
+</table>
+
+
+<p>Although there are many factors that come into play when evaluating
+the strength of a cryptographic transformation, the length of the key
+is clearly important. This is because an attacker who is in possession
+of a sealed message can always mount a brute-force attack.  Since
+longer keys have more possible values than shorter keys, longer keys
+are more resistant to brute-force attacks. (Note: this does not mean
+that cryptographic transformations that use longer keys are more
+secure. It may still be possible to attack a flaw in the algorithm,
+rather than simply testing every possible key. For example, the
+obsolete LUCIFER cryptographic transformation uses a 128-bit shared
+secret, while the DES uses a 56-bit key. But LUCIFER, unlike the DES,
+was susceptible to a particular kind of attack called differential
+cryptanalysis. This attack method was not publicly known at the time
+that the DES was published, but it was secretly known by the National
+Security Agency mathematicians who worked on DES.)
+</p>
+
+<p>
+In this problem we will explore the impact of different key lengths
+on system security.
+</p>
+
+<p>In general, because a key of <i>n</i> bits can have 2<sup><i>n</i></sup>
+possible values, there can be at most 2<sup><i>n</i></sup> different
+keys. For example, a 16-bit key can have
+2<sup>16</sup> or 65,536 different values. If you had a computer that
+could try 100 of these keys every second, it would take 654 seconds or
+roughly 11 minutes to try all possible keys. (If you are cracking many
+keys, the expected time to crack any given key is half that, as on
+average you will need to try half of the keys before you find the
+right one. Of course you could get lucky and try the key on your first
+attempt, or you could be unlucky and have to try nearly every single key.)</p>
+
+
+<p>In your study of cryptography, you will discover that many products
+have the ability  to use either so-called "weak" or "export-grade"
+encryption and "strong" or so-called "domestic" or "military-grade"
+cryptography. Usually the "weak" cryptography is limited to an
+effective secret key length of just 40 bits. The 40-bit
+restriction dates from a time when the United States government had
+regulations prohibiting the exportation of products containing strong
+cryptographic technology. Even though these regulations were largely
+eliminated more than five years ago, their legacy lives on today. For
+example, Microsoft Office XP uses a 40-bit RC2 key to seal documents
+that are given a "password."
+</p>
+
+<p>
+With clever programming, a modern desktop computer can try over a
+million RC2 keys every second.
+</p> 
+
+<p><b>Question 1.1: </b>What is the maximum amount of time that it would
+take for a computer that can try 1
+million RC2 keys every second to do a
+brute-force attack on a Microsoft Office document sealed with a
+cryptographic transformation that uses a 40-bit
+shared secret?</p>
+
+<p><b>Question 1.2: </b>Microsoft Office 2003 uses the AES cryptographic
+transformation with a 128-bit shared secret to control access to
+documents controlled by Windows Rights Management technologies. If AES
+keys can be tried with the same speed as RC2 keys using the computer described
+in Question 1.1, what is the maximum amount of time that it would
+take for a brute-force attack on a
+single document sealed with the Windows Rights Management technology?</p>
+
+<p><b>Question 1.3: </b>How does your answer to question 1.2 compare to the
+age of the Universe, currently estimated at somewhere between 13.5
+billion and 14 billion years?</p>
+
+<p>With advances in technology it may be possible at some point in
+the future to have billions of high-speed computers in a very small volume. 
+</p>
+
+<p><b>Question 1.4:</b> If you upgrade your computer to system that has a
+billion processing elements, each of which can try a billion keys in a
+second, is your secret still safe from attack?</p>
+
+<p>In fact, computers are getting faster every year. Moore's law is
+commonly believed to hold that computers are doubling in speed every
+18 months. What's more, faster techniques are being developed for
+reversing cryptographic transformations. Thus, simple estimates for the lifetime of a sealing
+key that do not take into account the relentless march of technology
+are inherently flawed.</p>
+
+<p><b>Question 1.5: </b>If you start with a computer today that can try 1 million keys
+every second and every 18 months you throw away that computer buy
+another for this project that is twice as fast, how long will it be
+until you have tried all possible 128-bit AES sealing keys?</p>
+
+<p>One of the challenges in mounting a successful
+brute-force attack is that your program needs to be able to
+have some way of recognizing when it has guessed the correct
+key.  Sometimes such recognitions are easy: the sealed text decrypts
+to English or another human-readable language. Your program can do a
+letter-frequency analysis on the resulting text and determine if the
+entropy is low or high; low-entropy indicates that the unsealing
+operation was successful. Recognizing a correct key becomes trivial if
+the decrypted message includes a checksum or message authentication
+code (MAC). In general, the longer the ciphertext, the easier it is to
+recognize when a correct key is guessed. </p>
+
+
+
+<p><b>Extra Credit:</b> The AES standard allows for key lengths of 128
+bits, 192 bits and 256 bits.
+<!--Most implementations today use 128 bits
+but it is expected that companies will soon start marketing implementations
+that use 192 bits or even 256 bits.-->
+Can
+you give a practical reason why a 192-bit or a 256-bit shared secret
+would provide more security than a 128-bit shared secret? </p>
+
+<h3>Part 2: Cryptographic Hashing</h3>
+
+<p>This section explores some properties of cryptographic hashing
+functions. For more information on cryptographic hashes, see section 11.2.3 of the notes.  Cryptographic hashes are used as building blocks
+of many security primitives, including digital signatures (see section 11.3 of the notes).</p>
+
+<p>
+The <a href="http://www.itl.nist.gov/fipspubs/fip180-1.htm">SHA-1</a>
+cryptographic hash function produces a 160-bit value, called a residue or a hash,
+for any given input. Since 160 bits is 20 bytes, there must be many
+files that have the same hash. (For example, given a file that is 21
+bytes in length, there should be approximately 255 other 21-byte files
+that have the same hash. This is a simple application of the
+pigeonhole principle.) Nevertheless, no two files have yet been found
+that have the same SHA-1 hash, known as a "collision".</p>
+
+<p><em>Note: While no SHA-1 collisions have been
+found, <a href="http://www.schneier.com/blog/archives/2005/02/cryptanalysis_o.html">security
+flaws</a> have been identified in it, and new hash standards are
+currently under development.</em></p>
+
+<p>
+A version of the SHA-1 is built into the <a
+href="http://www.openssl.org">openssl</a> command-line program that is
+available on Athena (<tt>/usr/athena/bin/openssl</tt>) and MacOS X
+(<tt>/usr/bin/openssl</tt>). When
+<b>openssl</b> is run with the <b>sha1</b> argument and one or more
+filenames, the program computes the SHA-1 hash of each file and prints
+the result as a hexadecimal string. If no files are presented, the program calculates the
+SHA-1 of any input presented on standard input.</p>
+
+<p>For example, to compute the SHA-1 of the file <tt>/etc/motd</tt>
+you could use this command:</p>
+
+<pre>
+athena% <b>openssl sha1 /etc/motd </b>
+SHA1(/etc/motd)= 1f3a70355ed8d34c5cc742fd64c2eca42b0d1846
+athena%
+</pre>
+
+<p>Notice that this 160-bit output is encoded in 40 hexadecimal digits. </p>
+
+<p>To calculate the SHA-1 of the string "MIT", you could use this command:</p>
+
+<pre>
+athena% <b>echo "MIT" | openssl sha1</b>
+7bf26f2a41bb62f30b10f8a740df2508f86023e6
+athena% 
+</pre>
+
+<p>(In fact, the code that is shown above is actually the SHA-1 of the
+three characters M, I and T followed by a newline character.)</p>
+
+<p><b>Question 2.1:</b> Compute the SHA-1 of the string "Massachusetts
+Institute of Technology" (either with or without the newline).</p>
+
+<p><b>Question 2.2:</b> Estimate the chance that there another file on
+any computer at MIT that has the same SHA-1 value that you calculated
+in question 2.1. Show your work. To do this problem, you will need a
+rough estimate of the number of computers at MIT, and the number of
+unique files that each of those computers contains.</p>
+
+<p><b>Question 2.3:</b> Compute how long it would take to find a
+string with the same SHA-1 hash as your answer in Question 2.1, using
+today's computers.</p>
+
+<!-- <p>
+Note that the <a href="http://en.wikipedia.org/wiki/Birthday_paradox">
+Birthday Paradox</a> states that if there are 23 people in a room then
+there is roughly a 50/50 chance that two people in the room share the
+same birthday. (On the other hand, there is only a 0.059 chance that
+someone in a room of 23 people will share your birthday.) This is
+because each person in the room has a chance of matching someone
+else's birthday. Consider how this relates to the task of locating
+hash collisions.</p> -->
+
+
+
+
+<h3>Part 3: GPG, Signatures and Certificates</h3>
+
+<p>
+This part of the hands-on assignment uses <a
+href="http://www.gnupg.org">GNU Privacy Guard (GPG)</a>, a message
+security program that is based on the program Pretty Good Privacy
+(PGP). The GPG program implements a full suite of signing and sealing
+algorithms, bulk cryptographic transformation algorithms, and routines
+for the management of keys. It also interoperates with network of
+so-called <i>key servers</i> on the Internet on which people can
+publish their public keys.</p>
+
+<p>
+GPG operates under the <a href="http://en.wikipedia.org/wiki/Web_of_trust">web of trust<a> model. In this model you trust a certificate because it is vouched for by someone whose identity you already trust. You may contrast this with the <a href="http://en.wikipedia.org/wiki/Certificate_authority">certificate authority</a> model, where a centralized third party, such as Verisign, vouches for the authenticity of a certificate.  
+</p>
+
+<p>
+ To complete this part of the hands-on you will need a copy of
+ GPG. You
+  can log in to Project Athena and type <tt>add gnu</tt>, as there is a copy of
+ GPG
+  in the Athena "gnu" locker. Alternatively, you can download a copy
+ of
+  GPG from <a href="http://www.gnupg.org/">GNU privacy guard</a> and install
+ it on
+  your own computer.
+
+
+<p>To learn about GPG's commands type <tt>man gpg</tt> and <tt>gpg
+--help</tt>. Note: it is a good idea to try both of these commands,
+because each one will teach you something different about GPG.</p>
+
+<p>You can use GPG's <tt>--version</tt> command
+to discover the transformation algorithms, ciphers, and hashes that it
+supports.</p>
+
+
+<p>
+The following questions make use of GPG Key BD18CA24 which was created
+especially for this course and uploaded to the GPG key server
+<tt>pgp.mit.edu</tt>  You will need to obtain the public key BD18CA24
+and add it GPG's database of public keys, which the program calls its
+<i>key ring</i>. You can either download the key from the key server
+using the GPG
+command <tt>gpg&nbsp;--keyserver&nbsp;pgp.mit.edu&nbsp;--recv-keys&nbsp;BD18CA24</tt>
+or else you can copy the key below, run GPG with the <tt>--import</tt>
+command, and paste the key into GPG's standard input.
+</p>
+
+<p>Here is the GPG key:</p>
+<pre>
+-----BEGIN PGP PUBLIC KEY BLOCK-----
+Version: SKS 1.1.0
+
+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
+=zj0U
+-----END PGP PUBLIC KEY BLOCK-----
+</pre>
+
+<p>
+GPG keys can be used for signing documents or for signing other
+keys. By convention, signatures on documents are used to verify the
+document's author and to demonstrate that the document has not been
+modified since it was signed. Signatures on keys mean that the person
+signing the key is making an affirmative statement that a given public
+key really belongs to the person whose name is embedded inside the
+key. Keys with signatures binding them to names are called
+<i>certificates</i>. (See sections 11.5.1 and 11.7.4 of the notes.)
+</p>
+
+<p>
+GPG supports supports a signature format called <i>clear
+signature</i> in which the signature appears at the bottom of the
+message. The course locker contains two messages that have GPG clear signatures
+at the bottom. Both documents were signed with the key that we created
+for this course, but one of the documents was modified. 
+</p>
+
+<table border="1">
+<tr><th colspan="2">Document #1:</th></tr>
+<tr><th>Filename:</th><td><tt>/mit/6.033/www/assignments/gpg-message1.txt.asc</tt></td></tr>
+<tr><th>URL:</th><td><a href="http://web.mit.edu/6.033/www/assignments/gpg-message1.txt.asc">
+                 http://web.mit.edu/6.033/www/assignments/gpg-message1.txt.asc</a></td></tr>
+<tr><th valign="top">Contents:</th>
+<td>
+<pre>
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA256
+
+This is a message that was signed with GPG!
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.10 (Darwin)
+
+iQEcBAEBCAAGBQJL1oeUAAoJELV20WG9GMokKDoIAJkUvhfPOUlGiA37SBfS2gKt
+ZfeTKySkQolFxnpEsU8PDSiY4H9F1w9jR3z/8bjlbvW7N1Pzy6ljmmGboICqnpES
+PRuhdyrVrleqrn815RXEW4VZMT7zbbdvQEhXRLfQZOWKckZHJjNvmfsVvYQv5dKR
+fG7rJr4m+fArv4L+ljdlpfStn7ljPBpyKgKG444wc98q55proXZDUy11OXNUHjOy
+OvGdkEd9unAdfqn3FlysJiM/S8SA+5A2fw1XRGMdWr6JHRcWG5qSltu4qV36z6z9
+YWIjkTuNYojtFuhbCOSAAXIlWBV3spG1RBcZaDUVOpO1QVjN+lXOqx5yqAMDgwY=
+=JL7x
+-----END PGP SIGNATURE-----
+</pre>
+</td></tr></table>
+
+<p>&nbsp;</p>
+<table border="1">
+<tr><th colspan="2">Document #2:</th></tr>
+<tr><th>Filename:</th><td><tt>/mit/6.033/www/assignments/gpg-message2.txt.asc</tt></td></tr>
+<tr><th>URL:</th><td><a href="http://web.mit.edu/6.033/www/assignments/gpg-message2.txt.asc">
+                 http://web.mit.edu/6.033/www/assignments/gpg-message2.txt.asc</a></td></tr>
+<tr><th valign="top">Contents:</th>
+<td>
+<pre>
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA256
+
+This is not a message that was signed with GPG!
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.10 (Darwin)
+
+iQEcBAEBCAAGBQJL1oedAAoJELV20WG9GMok0loIAKtvZVyEe0GDyKjr8cpjjl2l
+SqxL6RmRsCBcMIkkWlgBIpN25pdxgWLmiCQfFTe8Ro4Bu3nfmik4g+0JhiRUB1dX
+OUlxZzmDknf8bRob1pLDmtqnDisX+gDp0C+DBYsNpW5ICr2EZodMmbyewldLbsH9
+2rIYn+yoRdMv4jXftVC41fD+cukOXn8+AKK/mviwAnGHD8PPxvNEMEDbgI8sh6YA
+SvR5prefEsKEsC2eM4kwI3dv5d+JnqtRveD2dR0+yWRDz27dImVGvV4ap/RVDNt4
+VjEbiAbWqG97+oAb/SpW3RBWncnPmSyAK6OUapSfcv8BQyHwhOaoxfmtL2DZldY=
+=MV3O
+-----END PGP SIGNATURE-----
+</pre></td></tr></table>
+
+
+<p><b>Question 3.1:</b> In three sentences or less, describe how
+signing is different from sealing.</p>
+
+<p><b>Question 3.2:</b> Check that you have imported the key by using
+the GPG <tt>--list-keys</tt> command. What is the email address
+associated with the key?</p>
+
+<p><b>Question 3.3: </b>One of the above documents was modified after
+it was signed. Tell us which one! Show the output from GPG that proves
+your assertion.</p>
+
+
+<p><b>Question 3.4:</b> Given your knowledge of signing, explain what
+information <i>must</i> be stored in the PGP signatures of the above messages?</p>
+
+<p><b>Question 3.5: </b>Someone has signed key BD18CA24, verifying its
+identity. Whose signature is on this key? (Hint: You may need
+use <tt>--list-sigs</tt> and to access the key server to download
+additional keys to answer this question.) How do you know that the
+signature is legitimate? Can you trust that key BD18CA24 was really
+made for this course? Why or why not?</p>
+
+
+<p><b>Question 3.6: </b>Download key 0B72EB0F from the key
+server. Whose key is this? Can you trust this key because you got it
+from the official MIT key server? Why or why not?</p>
+
+<p><b>Question 3.7 (optional): </b>On Debian/Ubuntu systems with the debian-keyring package installed (linerva.mit.edu is an example), you can find a trust path to any key in the <a href="http://pgp.cs.uu.nl/plot/">strong set of keys</a>, since the debian-keyring lists the keys of Debian developers and is verified by the system when it is installed. You can list the keys (there are a lot) with:</p>
+
+<pre>
+gpg /usr/share/keyrings/debian-keyring.gpg
+</pre>
+
+<p>Find a trust path from a key in the debian-keyring to the handson key BD18CA24 and list the key ID, name, and email address of keys along the path. (<a href="http://pgp.mit.edu">http://pgp.mit.edu</a> might be helpful for browsing signatures.)</p>
+
+<!-- RULE: h-footer -->
+<hr>
+
+<table width=100%>
+<tr>
+<td align=left><b>Go to <a href="../../index.shtml">6.033 Home Page</a></b>
+</table>
+
+</body>
+</html>

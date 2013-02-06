@@ -1,0 +1,179 @@
+Naming in computer systems
+==========================
+
+Recall from last lecture:
+  Client-server model.
+    [ slide: Java RMI code ]
+  How to design interfaces between components?
+  Many client-server interactions involve naming things.
+    Naming the objects that the client asks the server to manipulate.
+    Naming clients and servers themselves.
+    [ slide: server name and bid object names ]
+  Exact details are different in each case, but there are some commonalities.
+
+This lecture: naming in computer systems.
+  Typical goals.
+  Abstract view of naming systems.
+  Questions to ask about a naming system.
+  Example: DNS.
+  Thursday's recitation & hands-on: naming in file systems.
+
+What are names useful for?
+  User-friendly identifiers.
+  Sharing.
+    Multiple components or users can name a shared object.
+    For example, multiple users can bid on the same item by naming it.
+    Without names, client-server interface pass entire object by value.
+  Retrieval.
+    Accessing the same object later on, just by remembering the name.
+  Indirection.
+    Component A only knows about a fixed name N.
+    Can change what name N refers to without changing A.
+    Desirable for some names, but maybe not others.
+    E.g., probably good if we can redirect to another server.
+          maybe not so great if we bid on different item.
+  Hiding.
+    Hide implementation details.
+    Access control: can access object only if you know the name.
+
+[ slide: examples of names ]
+  Register names
+  IP addresses
+  Host names: fully-qualified and relative
+  Path names: fully-qualified and relative
+  ".."
+  URLs
+  Emails
+  Function names
+  Program names
+  Phone numbers
+  SSNs
+
+High-level view of naming:
+  Set of possible names.
+  Set of possible values that the names map to.
+  Lookup algorithm translates a name into a value / set of values / "none".
+  Optional context that affects the lookup algorithm.
+
+General questions to help understand a naming system:
+  What's the syntax of names?
+  What are the values?
+  What context is used to resolve names, and who specifies it?
+  Is a particular name global (i.e., context-free) or local?
+
+Questions to help understand the lookup algorithm of a naming system:
+  Does every name have a value (or can you have "dangling" names)?
+  Can a single name have multiple values?
+  Does every value have a name (i.e., can you name everything)?
+  Can a single value have multiple names (i.e., are there synonyms)?
+  Can the value corresponding to a name change over time?
+
+Case study: DNS.
+  Names: hostname strings (e.g., web.mit.edu).
+  Values: IP addresses (e.g., 18.9.22.69).
+  Internet routers know how to send packets to an IP address (in a few weeks).
+  [ Naming is often layered: IP address is yet another kind of name,
+    and URLs contain hostnames. ]
+
+DNS name bindings.
+  No single table that stores all (hostname, IP address) pairs.
+  Instead, name bindings are distributed across many different name servers.
+  Names have a hierarchy that helps find the right name server.
+    [ diagram: tree structure, root, edu, mit, www, com, google, www, ... ]
+    Nodes in the hierarchy correspond to "zones", which map to name servers.
+    Each name server keeps table of names in its zone (e.g., names in mit.edu).
+    Common pattern: design names to help the lookup algorithm.
+
+DNS lookup algorithm.
+  Traverse the name hierarchy from the root.
+  Lookup algorithm itself uses client/server organization.
+  How to start?  Need to know how to contact root server.
+    Bootstrap: DNS clients come pre-configured with IPs of root servers.
+    ~13 IP addresses; rarely changed because that would break clients.
+  Query root name server for information about a hostname.
+  Response may contain a delegaton to another name server (NS record).
+  Keep querying name servers down the tree until we get IP address (A record).
+
+Where do the name bindings in each zone come from?
+  Each name server maintains its own mappings according to its own plan.
+  Root zone maintained by ICANN, a non-profit corp.
+  .com maintained by Verisign, which will add a new name to .com for money.
+  .mit.edu maintained by MIT IS&T.
+
+Demo: DNS names.
+  Context is a default domain name used to look up relative names.
+
+    ping www.mit.edu
+    ping www.harvard.edu
+    ping www
+    cat /etc/resolv.conf
+
+    [ echo +nocmd +nostats +noquestion +nocomments > ~/.digrc ]
+
+  Performing recursive lookups manually:
+
+    dig www.csail.mit.edu.
+    dig +norecurse @198.41.0.4 www.csail.mit.edu.
+    dig +norecurse @192.35.51.30 www.csail.mit.edu.
+    dig +norecurse @18.72.0.3 www.csail.mit.edu.
+    dig +norecurse @128.30.2.123 www.csail.mit.edu.
+
+  Where does 198.41.0.4 come from?
+  DNS uses recursion in many ways, e.g. names might point to other names:
+
+    dig +norecurse @128.30.2.123 pdos.csail.mit.edu.
+
+  or the name server for a domain might be specified by a name:
+
+    dig +norecurse @198.41.0.4 mit.org.
+    dig +norecurse @199.19.56.1 mit.org.
+    dig ns0.directnic.com.
+    dig +norecurse @74.117.217.20 mit.org.
+
+Why this design?
+  Global names (for fully-qualified names, assuming same root servers).
+    Can send a name to someone else, and they will be able to look it up too.
+  Scalable in terms of performance.
+    Simplicity: servers can answer many requests.
+    Caching: clients can cache results for some time (will discuss more later).
+    Delegation: many name servers handle lookups; each has limited table size.
+  Scalable in terms of management.
+    Each zone makes its own policy decisions about name bindings.
+  Fault tolerance.
+    If one name server breaks, others still work (client/server separation).
+    Multiple name servers can keep table for a single zone (e.g., MIT has 3).
+
+What are the problems with this design?
+  Who controls the root zone, .com, etc?
+    Ongoing policy discussions..
+  Significant load on root servers.
+    Every DNS client starts by talking to one of 13 root server IP addresses.
+    Much of the load turns out to be queries for non-existant names!
+      Somewhat counter-intuitive.
+      One reason: clients often don't cache "non-existant" replies.
+  Related: denial-of-service attacks on few root servers.
+  Security.
+    How does a client know if the data in response is correct?
+    If someone asks Verisign to change amazon.com's name servers,
+      how does Verisign know whether to accept or reject the request?
+
+Overall, DNS has been quite successful.
+  Designed in 1983: almost 30 years old!
+  Basic design still works today after scaling by many orders of magnitude.
+  Further reading: book section 4.4, hands-on #4.
+  One measure of success is that DNS has been used in many ways:
+    - user-friendly names (can just type in http://www.google.com/)
+    - one web page can refer to a page on a different site
+      (no need for the web page to know the IP address of the other site)
+    - load-balancing across many web servers
+      (name server can return IP address of one out of many web servers)
+    - choosing a nearby web server
+      (name server maps google.com to a server near the client)
+    - in general, IP addresses are rarely hard-coded, and DNS names are common
+      (allows changing the hosting provider without re-configuring systems)
+    - DNS is even used for other kinds of name lookup
+      (e.g., keeping a list of known spam senders, software version numbers, ..)
+  Later recitation will cover how content distribution networks use DNS.
+
+[ slide: summary ]
+

@@ -1,0 +1,104 @@
+#  -*- mode: org -*-
+#+STARTUP: indent
+ 
+6.033 2012 Lecture 14: Fault-tolerant computing
+
+* 6.033 so far: client/server
+fault isolation by avoiding propagation
+  only benign mistakes (programming errors)
+  no recovery plan
+** rest of semester:  
+keep running despite failures
+broaden class of failures to include malicious ones
+
+* Threats:
+software faults (e.g., blue screen)
+hardware (e.g., disk failed)
+design (e.g., UI, typo in airport code results in crash,  therac-25)
+operation (e.g., AT&T outage)
+environment (e.g., tsunami)
+
+* Fault-tolerant systems
+Reliable systems form unreliable components
+Redundancy (replication, error code, multiple paths)
+latence fault -> active fault -> error -> failure -> fault -> etc.
+failure = a component fails to produce the intended result at its interface
+
+* Examples of fault-tolerant systems:
+DNS: replicate NS
+Internet: packet network 
+BGP: alternate path
+TCP: resend packet
+
+* Approach to designing fault tolerant systems:
+1 Identify possible faults
+2 Detect & contain (client/server, checksum, etc.)
+3 Decide a plan for handling fault:
+   nothing
+   fail-fast
+   fail-safe
+   ..
+   mask (through redundancy space or time)
+Difficult process, because you must identify *all possible* faults
+Easy to miss some possibilities, which then bite you later
+Iterative process
+
+* Metric: MTTF and MTBF
+MTTF = mean time to failure
+MTTR = mean time to repair
+MTBF = mean time between failure (MTTF + MTTR)
+availability = MTTF / MTBF
+
+* Examples of availability
+See slide
+
+* Let's look at MTTF of disk and how we can recover
+** It allows to store state across power failure
+** Building block for fault-tolerant systems:
+Store the state that is necessary for recovery on disk
+--> All important state stored persistently on disk
+Disk better work well
+
+* MTTF of disk is high!  
+** larger than the existence of the manufacturer
+how is it possible?
+** run: 1,000 disks for 3,000 hours
+10 fail -> 1 failure per 300,000 hours
+failure rate = 0.0000033
+assume: MTTF = 1/failure rate, then MTTF = 300,000
+** is the assumption reasonable? is the failure rate memory less?
+
+* Bathtub graph
+Nope; it is not memory less. 
+Failure rate is compute for bottom part of tub
+Is aging a real issue?  Yes, see graph.
+Has real impact on reliability of system.  See graph
+
+* How do we make a fault-tolerant disk
+** demo:
+ssh root@ud0.csail.mit.edu
+
+# smartctl -A /dev/sda > /tmp/smartctl.out
+# diff /tmp/smartctl.base <(smartctl -A /dev/sda)
+
+.. do something disk-intensive, like du -ks /usr
+
+# diff /tmp/smartctl.base <(smartctl -A /dev/sda)
+** techniques
+1. fail-fast disk (discover faults)
+2. retry to handle intermittent failures
+3. replication 
+costs us two disks (see tomorrow)
+need to replicate interconnect between disks, controllers, etc. (see HP slide)
+
+* Software complicated -> bugs!
+==> Fault-tolerant software systems rely on correctness of software inside disk!
+how to write bug-free software
+split up in code matter and doesn't mater
+   most software on computer doesn't matter; code in disk controller does
+for code that does matter, stringent development process
+hard part: bug in specification
+
+
+   
+

@@ -1,0 +1,224 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+<title>6.033 / Preparation for Recitation 12</title>
+<meta http-equiv="pragma" content="no-cache">
+<link rel="stylesheet" href="../6033.css" type="text/css">
+
+<script type="text/javascript">
+    function autofill_email() {
+        var spans = document.getElementsByTagName("span");
+        for (i = 0; i < spans.length; i++) {
+            if (spans[i].className != "email_autofill")
+                continue;
+            spans[i].innerHTML = spans[i].innerHTML.replace(/ at /, "@");
+        }
+    }
+
+    function page_onload() {
+        autofill_email();
+    }
+</script>
+
+</head>
+
+<body bgcolor="#ffffff" text="#000000" onLoad="page_onload()">
+<table cols="3" width="100%" height="100%" border="0" cellspacing="0"
+cellpadding="0">
+  <tbody>
+    <!-- Header row -->
+    <tr height="40">
+      <td colspan="3">
+	<table width="100%" height="40" border="0" cellspacing="0"
+	       cellpadding="0">
+	  <tbody>
+	    <tr> 
+	      <td width="531" bgcolor="#000000">
+		<div align="left" class="titleHead header">
+		  <a name="top"><b>6.033: Computer Systems Engineering</b></a>
+		</div>
+	      </td>
+	      <td bgcolor="#8a0a0a" halign="center" valign="center" width="234">
+		<div align="center" class="titleHead header">
+		  <b>Spring 2012</b>
+		</div>
+	      </td> 
+	    </tr> 
+	  </tbody> 
+      </table>
+      </td> 
+    </tr> 
+    <!-- horiz line --> 
+    <tr> 
+      <td colspan="3" height="5" bgcolor="#8a0a0a"> <br> </td> 
+    </tr> 
+    <tr> 
+      <!-- Menu --> 
+      <td bgcolor="#8a0a0a" valign="top" width="180"> <table cols="2"
+							     rows="1"
+							     border="0"
+							     cellspacing="0"
+							     cellpadding="0"
+							     width="100%"
+							     height="100%">
+	  <tbody> 
+	    <tr> 
+	      <td valign="top">
+		<table cols="1" rows="1" border="0" cellspacing="0"
+				       cellpadding="0" width="100%"> 
+		  <tbody> 
+		    <tr> 
+		      <td> <div class="menuHead"> <a href="../index.shtml"
+			    class="menuItem"> Home /
+			    News</a></div></td>
+		    </tr> 
+		    <tr> 
+		      <td> <div class="menuHead"> <a href="../schedule.shtml"
+						   class="menuItem">Schedule</a> </div></td>
+		    </tr> 
+                    <tr>
+                       <td><div class="menuHead"><a href="https://6033.scripts.mit.edu:444/submit.cgi"
+                                                    class="menuItem">Submissions</a>
+                      </div></td>
+                      </tr>
+		    <tr> 
+		      <td>
+			  <hr>
+		      </td> 
+		    </tr> 
+		    <tr> 
+		      <td> <div class="menuHead"> <a href="../general.shtml"
+						   class="menuItem">General Information </a> </div></td>
+		    </tr> 
+		    <tr> 
+		      <td> <div class="menuHead"> <a href="../general.shtml#staff" class="menuItem">Staff List</a>
+		      </div></td> 
+		    </tr> 
+		    <tr> 
+		      <td> <div class="menuHead"> <a href="../sections.shtml" class="menuItem">Recitations</a>
+		      </div></td> 
+		    </tr> 
+		    <tr> 
+		      <td> <div class="menuHead"> <a href="../general.shtml#tas" class="menuItem">TA Office Hours</a>
+		      </div></td> 
+		    </tr> 
+		    <tr> 
+		      <td>
+			  <hr> 
+		      </td> 
+		    </tr> 
+		    <tr> 
+		      <td> <div class="menuHead"> <a href="http://www.piazza.com/mit/spring2012/6033" class="menuItem">Discussion / feedback</a>
+		      </div></td> 
+		    </tr> 
+		    <tr> 
+		      <td> <div class="menuHead"> <a href="../faq.shtml" class="menuItem">FAQ</a>
+		      </div></td> 
+		    </tr> 
+		    <tr> 
+		      <td> <div class="menuHead"> <a href="../errata.shtml " class="menuItem">Class Notes Errata</a>
+		      </div></td> 
+		    </tr> 
+		    <tr> 
+		      <td> <div class="menuHead"> <a href="../writing_examples.shtml" class="menuItem">Excellent Writing Examples</a>
+		      </div></td> 
+		    </tr> 
+		    <tr> 
+		      <td>
+			  <hr> 
+		      </td> 
+		    </tr> 
+		    <tr> 
+		      <td> <div class="menuHead"> <a href="http://mit.edu/6.033/2011/wwwdocs"
+						   class="menuItem">2011 Home</a><br> 
+		      </div></td> 
+		    </tr> 
+                    <tr>
+                      <td> <div class="menuHead">
+<a rel="license" href="http://creativecommons.org/licenses/by/3.0/us/"><img alt="Creative Commons License" style="border-width:0" src="http://i.creativecommons.org/l/by/3.0/us/88x31.png" /></a>
+<br>
+                      </div></td>
+                    </tr>
+		  </tbody> 
+	      </table></td> 
+	      <td width="3" bgcolor="#8a0a0a"> <br> </td> 
+	    </tr> 
+	  </tbody> 
+      </table></td> 
+      <!-- End Menu --> 
+      <td colspan="2"> <table border="0" cellspacing="0" cellpadding="0" width="100%" height="100%"> 
+	  <tbody> 
+	    
+	    <tr> 
+	      <td style="padding: 10px;" valign="top" align="left">
+
+
+
+<!-- ------------------ -->
+<!-- Begin Page Content --> 
+
+<p class="TitleHead">Preparation for Recitation 12</p> 
+
+<p> Read <a href="../papers/indirect-misbehaving.shtml">TCP Congestion
+Control with a Misbehaving Receiver</a> by Stefan Savage et al.</p>
+
+<p>Underlying the design of TCP is an assumption that senders and
+receivers will abide by TCP's congestion control algorithm. A sender
+or a receiver may want to cheat and deactivate congestion control
+however. In particular, honest TCP senders back off in response to
+drops, reducing their transmission rates. In contrast, a cheating
+sender may increase its rate and grab the capacity that the honest
+senders release. This will cause more drops and thus the honest sender
+will reduce their rates further, letting the cheater grab an even
+bigger share of the bottleneck capacity.</p>
+
+<p>A receiver also may be interested in cheating to make its FTP or
+Web download go faster. It is not immediately clear that a receiver
+can force an honest TCP sender to transmit more than its fair share,
+if the latter abides by TCP congestion control. This paper was the
+first to point out that a misbehaving receiver can actually fool an
+honest sender to send faster than it should.</p>
+
+<p>Note that the paper refers to packets as segments. Also note that,
+in lectures, we simplified the TCP ACK scheme by saying that each data
+packet has a sequence number. In reality, each data packet is
+identified by the sequence of bytes it contains. For example packet
+1:1460 contains the byte sequence 1 up to 1460. ACKs ask for the next
+byte that the receiver expect to receive, e.g., ACK 1460, means that
+the receiver has received all bytes up to byte 1460. Also, note that TCP has
+more components than the one we talked about in
+lectures (congestion avoidance (AIMD)). In particular, the paper mentions the
+slow-start and fast-recovery components. Check <a
+href="http://www.faqs.org/rfcs/rfc2581.html">RFC 2581</a> for more
+information on these algorithms.</p>
+
+<p>After reading the paper, submit a <b>one-to-two-paragraph</b> answer
+via the submission web site for <b>one</b> of the following questions:</p>
+
+<UL>
+
+<li>Attacks that change TCP as described in this paper are not
+common. Can you think why this is the case?</li>
+
+<li> Why it is wiser for a misbehaving receiver to use Attack 1 or 2
+instead of Attack 3?</li>
+
+</UL>
+
+<!--  End Page Content  -->
+<!-- ------------------ -->
+
+
+
+</td></tr> 
+<tr bgcolor="#999999" height="20">
+<td style="padding-left: 10px; padding-top: 10px; padding-bottom: 10px;">
+
+<p><font style="font-size: 12px;">
+	Questions or comments regarding 6.033? Send e-mail to the 6.033 staff at <span class="email_autofill">6.033-staff at mit.edu</span> or to the 6.033 TAs at <span class="email_autofill">6.033-tas at mit.edu</span>.
+</font></p> 
+
+<p><font style="font-size: 12px;">
+<b><a href="#top">Top</a></b> // <b><a href="../index.shtml">6.033 home</a></b> //
+
+</font></p></td></tr></tbody></table></td></tr></tbody></table> 
+</body></html>

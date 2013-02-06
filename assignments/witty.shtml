@@ -1,0 +1,227 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+<title>6.033 / Preparation for Recitation 23</title>
+<meta http-equiv="pragma" content="no-cache">
+<link rel="stylesheet" href="../6033.css" type="text/css">
+
+<script type="text/javascript">
+    function autofill_email() {
+        var spans = document.getElementsByTagName("span");
+        for (i = 0; i < spans.length; i++) {
+            if (spans[i].className != "email_autofill")
+                continue;
+            spans[i].innerHTML = spans[i].innerHTML.replace(/ at /, "@");
+        }
+    }
+
+    function page_onload() {
+        autofill_email();
+    }
+</script>
+
+</head>
+
+<body bgcolor="#ffffff" text="#000000" onLoad="page_onload()">
+<table cols="3" width="100%" height="100%" border="0" cellspacing="0"
+cellpadding="0">
+  <tbody>
+    <!-- Header row -->
+    <tr height="40">
+      <td colspan="3">
+	<table width="100%" height="40" border="0" cellspacing="0"
+	       cellpadding="0">
+	  <tbody>
+	    <tr> 
+	      <td width="531" bgcolor="#000000">
+		<div align="left" class="titleHead header">
+		  <a name="top"><b>6.033: Computer Systems Engineering</b></a>
+		</div>
+	      </td>
+	      <td bgcolor="#8a0a0a" halign="center" valign="center" width="234">
+		<div align="center" class="titleHead header">
+		  <b>Spring 2012</b>
+		</div>
+	      </td> 
+	    </tr> 
+	  </tbody> 
+      </table>
+      </td> 
+    </tr> 
+    <!-- horiz line --> 
+    <tr> 
+      <td colspan="3" height="5" bgcolor="#8a0a0a"> <br> </td> 
+    </tr> 
+    <tr> 
+      <!-- Menu --> 
+      <td bgcolor="#8a0a0a" valign="top" width="180"> <table cols="2"
+							     rows="1"
+							     border="0"
+							     cellspacing="0"
+							     cellpadding="0"
+							     width="100%"
+							     height="100%">
+	  <tbody> 
+	    <tr> 
+	      <td valign="top">
+		<table cols="1" rows="1" border="0" cellspacing="0"
+				       cellpadding="0" width="100%"> 
+		  <tbody> 
+		    <tr> 
+		      <td> <div class="menuHead"> <a href="../index.shtml"
+			    class="menuItem"> Home /
+			    News</a></div></td>
+		    </tr> 
+		    <tr> 
+		      <td> <div class="menuHead"> <a href="../schedule.shtml"
+						   class="menuItem">Schedule</a> </div></td>
+		    </tr> 
+                    <tr>
+                       <td><div class="menuHead"><a href="https://6033.scripts.mit.edu:444/submit.cgi"
+                                                    class="menuItem">Submissions</a>
+                      </div></td>
+                      </tr>
+		    <tr> 
+		      <td>
+			  <hr>
+		      </td> 
+		    </tr> 
+		    <tr> 
+		      <td> <div class="menuHead"> <a href="../general.shtml"
+						   class="menuItem">General Information </a> </div></td>
+		    </tr> 
+		    <tr> 
+		      <td> <div class="menuHead"> <a href="../general.shtml#staff" class="menuItem">Staff List</a>
+		      </div></td> 
+		    </tr> 
+		    <tr> 
+		      <td> <div class="menuHead"> <a href="../sections.shtml" class="menuItem">Recitations</a>
+		      </div></td> 
+		    </tr> 
+		    <tr> 
+		      <td> <div class="menuHead"> <a href="../general.shtml#tas" class="menuItem">TA Office Hours</a>
+		      </div></td> 
+		    </tr> 
+		    <tr> 
+		      <td>
+			  <hr> 
+		      </td> 
+		    </tr> 
+		    <tr> 
+		      <td> <div class="menuHead"> <a href="http://www.piazza.com/mit/spring2012/6033" class="menuItem">Discussion / feedback</a>
+		      </div></td> 
+		    </tr> 
+		    <tr> 
+		      <td> <div class="menuHead"> <a href="../faq.shtml" class="menuItem">FAQ</a>
+		      </div></td> 
+		    </tr> 
+		    <tr> 
+		      <td> <div class="menuHead"> <a href="../errata.shtml " class="menuItem">Class Notes Errata</a>
+		      </div></td> 
+		    </tr> 
+		    <tr> 
+		      <td> <div class="menuHead"> <a href="../writing_examples.shtml" class="menuItem">Excellent Writing Examples</a>
+		      </div></td> 
+		    </tr> 
+		    <tr> 
+		      <td>
+			  <hr> 
+		      </td> 
+		    </tr> 
+		    <tr> 
+		      <td> <div class="menuHead"> <a href="http://mit.edu/6.033/2011/wwwdocs"
+						   class="menuItem">2011 Home</a><br> 
+		      </div></td> 
+		    </tr> 
+                    <tr>
+                      <td> <div class="menuHead">
+<a rel="license" href="http://creativecommons.org/licenses/by/3.0/us/"><img alt="Creative Commons License" style="border-width:0" src="http://i.creativecommons.org/l/by/3.0/us/88x31.png" /></a>
+<br>
+                      </div></td>
+                    </tr>
+		  </tbody> 
+	      </table></td> 
+	      <td width="3" bgcolor="#8a0a0a"> <br> </td> 
+	    </tr> 
+	  </tbody> 
+      </table></td> 
+      <!-- End Menu --> 
+      <td colspan="2"> <table border="0" cellspacing="0" cellpadding="0" width="100%" height="100%"> 
+	  <tbody> 
+	    
+	    <tr> 
+	      <td style="padding: 10px;" valign="top" align="left">
+
+
+
+<!-- ------------------ -->
+<!-- Begin Page Content --> 
+
+<p class="TitleHead">Preparation for Recitation 23</p> 
+
+<p> Read the paper
+    <a href="https://web.mit.edu/6.033/www/papers/protected/witty.pdf">Exploiting
+    Underlying Structure for Detailed Reconstruction of an Internet-Scale Event</a>.
+    This paper describes how the authors
+    analyzed the propagation tree of the Witty Worm and identified the
+    host that started the attack. Read the abstract, and Sections
+    1, 2, 3, and 4.</p>
+
+<p> Computer worms are self-propagating programs. A worm can be either
+    benign or malicious. A malicious worm may try to destroy some
+    files on the infected machine or use the machine to mount a denial
+    of service attack on some Internet service, whereas a benign one
+    uses the machine only to spread itself to other machines.</p>
+
+<p> To infect a host, a worm exploits a security bug in the software
+    running on that host. Once the worm infects a host, it uses that
+    host to contact new destinations and propagate to new victims,
+    thus creating a propagation tree. As a result worms propagate
+    exponentially fast. One important characteristic of a worm is the
+    method used for picking new destinations. The most common way is
+    to randomly pick IP addresses and contact them to see whether they
+    suffer from the same security bug exploited by the worm. If they
+    are, then they become infected and they start propagating the worm
+    to even more machines. Some worms do not pick destinations
+    randomly; they rather have a hit list of IP addresses that suffer
+    from the exploited bug. These worms can propagate faster because
+    they focus on the vulnerable victims.</p>
+
+<p> The paper uses a network telescope to passively collect
+    information about the Witty worm. A network telescope is an unused
+    chunk of the IP address space. A big telescope may be monitoring a
+    /8 address prefix, while a small one may monitor a /24
+    prefix. Since IP addresses in the monitored space are not assigned
+    to any Internet hosts, they theoretically should not receive any
+    traffic. But because worms and other Internet attacks tend to send
+    traffic to random IPs, in practice, an unused IP prefix receives a
+    lot of attack traffic.  The authors of the paper collected the
+    Witty packets received at all IP addresses in the monitored space
+    and analyzed it to understand how Witty propagated.</p>
+
+<p> While reading about Witty, try to answer the following questions:</p>
+<ol>
+<li> How does Witty pick the IP address of the next destination?</li>
+<li> How did the authors identify patient zero (i.e., the machine that
+     started the worm)</li>
+<li> How could one change Witty to prevent the detection of patient
+     zero?</li>
+<li> Which factors affect how fast a worm propagates?</li>
+</ol>
+ <!--  End Page Content  -->
+<!-- ------------------ -->
+
+
+
+</td></tr> 
+<tr bgcolor="#999999" height="20">
+<td style="padding-left: 10px; padding-top: 10px; padding-bottom: 10px;">
+
+<p><font style="font-size: 12px;">
+	Questions or comments regarding 6.033? Send e-mail to the 6.033 staff at <span class="email_autofill">6.033-staff at mit.edu</span> or to the 6.033 TAs at <span class="email_autofill">6.033-tas at mit.edu</span>.
+</font></p> 
+
+<p><font style="font-size: 12px;">
+<b><a href="#top">Top</a></b> // <b><a href="../index.shtml">6.033 home</a></b> //
+
+</font></p></td></tr></tbody></table></td></tr></tbody></table> 
+</body></html>

@@ -1,0 +1,201 @@
+6.033 2011 Lecture 11: Layers and Network layer
+
+Plan:
+   Protocol and Layers
+   Link layer: 6.02
+   Net layer: today
+   E/E layer: Monday
+
+How to solve problems from previous lecture?
+   Protocols
+   Layers
+
+Protocol
+  Examples:  DHCP, DNS, UDP, SMTP, TCP, ...
+  Two entities (peers) are talking.
+  Protocol formally defines structure of conversation.
+  Typically sequence of messages -- packets.
+  Format:
+    Specific set of message types.
+    What does each bit of the message mean?
+    [example: ethernet paper, dst, src, data, checksum]
+  Rules for what happens next, state machines.
+  Semantics: what does it mean?
+  Often you can learn all you need from the formats...
+
+Layers:
+  Intuition: protocols nest.
+  Inner protocols building blocks for outer ones.
+  Let's formalize that way of organizing multiple protos.
+  Choose and define a useful protocol. [box <--> box]
+  Define s/w interface so other layers can use it. [stack up]
+  It may in turn use more primitive layers. [stack down]
+  Can build up functionality this way.
+  But use modules, abstraction to control complexity.
+  Hard part: choosing useful layer boundaries.
+
+6.033 layer model:
+  [draw stacks for host, switch, host]
+  Physical: analog waveforms -> bits.
+  Link: bits -> packets, single wire.
+  Network: packet on wire -> packet to destination.
+  End-to-end: packets -> connections or streams.
+  Application.
+  physical almost always tightly bound to Link.
+  And application isn't a generally useful tool.
+  Note: layer may have many clients
+    multiple apps using e2e, multiple e2e using net
+    need a way to multiplex them
+  Note: net layer may use multiple links
+  So the real picture in one host
+    app1 app2 app3
+      TCP UDP
+        IP
+     Eth WiFi
+  Layers == outline of data networking topic.
+
+Stack of layers:
+  Repeated scheme for layer interaction
+  Each layer adds/strips off its own header.
+    Encapsulates higher layer's data as "payload".
+    [add to pkt diagram; interior header &c]
+  Each layer may split up higher layer's data.
+    [stream split into payloads of packets]
+  Each layer multiplexes multiple higher layers.
+    [put protocol # field into packet]
+  Each layer is (mostly) transparent to higher layers.
+    data delivered up on far side == data in
+
+Demo: layers in action
+   wireshark
+      select interface wifi
+      capture all packets
+      send email
+      stop capture
+      filter traffic by src: ip.src == 192.168.1.108
+      look at trace
+        SMPT, TCP, etc.
+
+Network layer
+    Forwarding -- sending data over links according to a routing table
+    Routing -- process whereby routing tables are built
+
+Forwarding -- mechanical.  Just perform a lookup in a table.
+
+Pseudocode:
+
+forwarding_table t
+
+net_send(payload, dest, e2eprot):
+	pkt = new packet(payload,dest,e2eprot)
+	net_handle(pkt)
+
+net_handle(pkt):
+	if (pkt.dest == LOCAL_ADDR):
+		e2e_handle(pkt.payload, pkt.e2eprot)
+	else:
+		link_send(t[p.dest].link, pkt)    // table lookup
+
+Routing -- compute the forwarding table
+
+How to compute forwarding table?  Manually -- not scalable.
+
+Centrally -- not a good idea (why?)
+	- need a routing algorithm to collect
+	- collection requires many messages
+	- hard to adapt to changes
+	
+Path Vector Algorithm  -- Distributed
+
+	Each node maintains a forwarding table T , with:
+
+		Dest		Link		Path
+		
+	Two steps:
+		advertise (periodic)
+			 send T to neighbors
+
+		integrate(N,neighbor, link) -- on receipt of advertisement from neighbor
+				merge neighbor table N heard from neighbor on link into T
+	
+	Merging:
+		for each dest d w/ path r in N:
+			if d not in T, add (d, link, neighbor ++ r) to T
+			if d is in T, replace if (neighbor ++ r) is shorter than old path
+
+
+Example:
+
+(If everybody picks best path to every dest, you can see that for a network with most distant nodes separated by N hops, in N rounds everyone will know how to reach everyone else in N steps.)
+
+Q: what is the purpose of keeping the path in the table?
+
+Problems:
+		
+	- permanent loops?
+		- won't arise if we add a rule that we don't pick paths with ourselves
+		in them;  this is what we need the path for!
+
+	- temporary loops -- arise because two nodes may be slightly out of date
+		example
+		- soln:  add send count -- "TTL" -- to packet
+		
+	- failures / changes -- repeat advertisements periodically, 
+		remove paths in your table that aren't re-advertised
+			(e.g., a path P that begins with router R should be in the
+			next advertisement from R.)
+
+	- graph changes -- same as failures
+
+
+How does this work on the Internet:
+
+	At first, internet was a small network like this
+
+	Show evolution slides
+
+	What is the problem with using path vector here?
+		
+		Network is huge
+		
+		> 1 B nodes on network
+		
+		Even if we assume most of those are compters that connect to only
+			their local router (so don't really need to run the path vector 				protocol), there are still many millions of routers in the Internet
+	
+		Each router needs to know how to reach of these billions of computers
+
+		With pure path vector, each node has a multi-billion entry table (requiring 
+			gigabytes of storage)
+			
+		Each router has to send these gigabyte tables to each of its neighbors;
+			millions of advertisements propagating around.  Disaster.
+
+
+	Solution:  hierarchical routing
+	
+	Subdivide net into areas;  with multiple levels of routing
+
+One node representative of each area;  perform path vector at area level.  Within each area, free to do whatever.  (For example, use more hierarchy.)
+
+Demo: http://www.routeviews.org/
+  telnet route-views.routeviews.org
+     logged into a router, running view
+    show bgp 18.0.0.1
+	 area.name  
+	    E.g., 18.7.22.69 -- this is mit.edu, area 18, which corresponds to AS 3 in BGP
+            http://bgp.potaroo.net/cidr/autnums.html list all AS
+         Internet routers running -- BGP -- advertise prefixes of these address
+      	    Show advertisements (e.g., "18.*.*.*"...)	   17.1*.*.*
+     show bgp 18.26.4.9
+         same table (only knows about 18).
+     show ip bgp sum
+         size of table
+http://bgplay.routeviews.org/
+          query: 18..0.0.0/8   
+	  start 2/2/2011
+	  end 3/8/2011
+      174: cognet  
+      1239: sprint
+      3356: level
+      10578 (gigapop-NE, harvard)

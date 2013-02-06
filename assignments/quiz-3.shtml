@@ -1,0 +1,217 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+<title>6.033 / Quiz 3 FAQ</title>
+<meta http-equiv="pragma" content="no-cache">
+<link rel="stylesheet" href="../6033.css" type="text/css">
+
+<script type="text/javascript">
+    function autofill_email() {
+        var spans = document.getElementsByTagName("span");
+        for (i = 0; i < spans.length; i++) {
+            if (spans[i].className != "email_autofill")
+                continue;
+            spans[i].innerHTML = spans[i].innerHTML.replace(/ at /, "@");
+        }
+    }
+
+    function page_onload() {
+        autofill_email();
+    }
+</script>
+
+</head>
+
+<body bgcolor="#ffffff" text="#000000" onLoad="page_onload()">
+<table cols="3" width="100%" height="100%" border="0" cellspacing="0"
+cellpadding="0">
+  <tbody>
+    <!-- Header row -->
+    <tr height="40">
+      <td colspan="3">
+	<table width="100%" height="40" border="0" cellspacing="0"
+	       cellpadding="0">
+	  <tbody>
+	    <tr> 
+	      <td width="531" bgcolor="#000000">
+		<div align="left" class="titleHead header">
+		  <a name="top"><b>6.033: Computer Systems Engineering</b></a>
+		</div>
+	      </td>
+	      <td bgcolor="#8a0a0a" halign="center" valign="center" width="234">
+		<div align="center" class="titleHead header">
+		  <b>Spring 2012</b>
+		</div>
+	      </td> 
+	    </tr> 
+	  </tbody> 
+      </table>
+      </td> 
+    </tr> 
+    <!-- horiz line --> 
+    <tr> 
+      <td colspan="3" height="5" bgcolor="#8a0a0a"> <br> </td> 
+    </tr> 
+    <tr> 
+      <!-- Menu --> 
+      <td bgcolor="#8a0a0a" valign="top" width="180"> <table cols="2"
+							     rows="1"
+							     border="0"
+							     cellspacing="0"
+							     cellpadding="0"
+							     width="100%"
+							     height="100%">
+	  <tbody> 
+	    <tr> 
+	      <td valign="top">
+		<table cols="1" rows="1" border="0" cellspacing="0"
+				       cellpadding="0" width="100%"> 
+		  <tbody> 
+		    <tr> 
+		      <td> <div class="menuHead"> <a href="../index.shtml"
+			    class="menuItem"> Home /
+			    News</a></div></td>
+		    </tr> 
+		    <tr> 
+		      <td> <div class="menuHead"> <a href="../schedule.shtml"
+						   class="menuItem">Schedule</a> </div></td>
+		    </tr> 
+                    <tr>
+                       <td><div class="menuHead"><a href="https://6033.scripts.mit.edu:444/submit.cgi"
+                                                    class="menuItem">Submissions</a>
+                      </div></td>
+                      </tr>
+		    <tr> 
+		      <td>
+			  <hr>
+		      </td> 
+		    </tr> 
+		    <tr> 
+		      <td> <div class="menuHead"> <a href="../general.shtml"
+						   class="menuItem">General Information </a> </div></td>
+		    </tr> 
+		    <tr> 
+		      <td> <div class="menuHead"> <a href="../general.shtml#staff" class="menuItem">Staff List</a>
+		      </div></td> 
+		    </tr> 
+		    <tr> 
+		      <td> <div class="menuHead"> <a href="../sections.shtml" class="menuItem">Recitations</a>
+		      </div></td> 
+		    </tr> 
+		    <tr> 
+		      <td> <div class="menuHead"> <a href="../general.shtml#tas" class="menuItem">TA Office Hours</a>
+		      </div></td> 
+		    </tr> 
+		    <tr> 
+		      <td>
+			  <hr> 
+		      </td> 
+		    </tr> 
+		    <tr> 
+		      <td> <div class="menuHead"> <a href="http://www.piazza.com/mit/spring2012/6033" class="menuItem">Discussion / feedback</a>
+		      </div></td> 
+		    </tr> 
+		    <tr> 
+		      <td> <div class="menuHead"> <a href="../faq.shtml" class="menuItem">FAQ</a>
+		      </div></td> 
+		    </tr> 
+		    <tr> 
+		      <td> <div class="menuHead"> <a href="../errata.shtml " class="menuItem">Class Notes Errata</a>
+		      </div></td> 
+		    </tr> 
+		    <tr> 
+		      <td> <div class="menuHead"> <a href="../writing_examples.shtml" class="menuItem">Excellent Writing Examples</a>
+		      </div></td> 
+		    </tr> 
+		    <tr> 
+		      <td>
+			  <hr> 
+		      </td> 
+		    </tr> 
+		    <tr> 
+		      <td> <div class="menuHead"> <a href="http://mit.edu/6.033/2011/wwwdocs"
+						   class="menuItem">2011 Home</a><br> 
+		      </div></td> 
+		    </tr> 
+                    <tr>
+                      <td> <div class="menuHead">
+<a rel="license" href="http://creativecommons.org/licenses/by/3.0/us/"><img alt="Creative Commons License" style="border-width:0" src="http://i.creativecommons.org/l/by/3.0/us/88x31.png" /></a>
+<br>
+                      </div></td>
+                    </tr>
+		  </tbody> 
+	      </table></td> 
+	      <td width="3" bgcolor="#8a0a0a"> <br> </td> 
+	    </tr> 
+	  </tbody> 
+      </table></td> 
+      <!-- End Menu --> 
+      <td colspan="2"> <table border="0" cellspacing="0" cellpadding="0" width="100%" height="100%"> 
+	  <tbody> 
+	    
+	    <tr> 
+	      <td style="padding: 10px;" valign="top" align="left">
+
+
+
+<!-- ------------------ -->
+<!-- Begin Page Content --> 
+
+<p class="TitleHead">Preparation for Quiz 3</p> 
+
+<p> While Quiz 3 is during finals week, it will only explicitly cover the final
+    1/3 of the course. Of course, the cumulative nature of this course
+    means that terms and concepts from the first 2/3 will be used
+    freely, but the questions will focus primarily on the material
+    covered from recitation 18 onwards. Quiz 3 will be 90 minutes, not 50
+    like the first two.</p>
+
+<p> The quiz will cover material from recitation 18 through recitation
+    26. The quiz will be open book, open laptop, no network. That means you can bring along any printed, written
+    or electronic materials that you think might be useful but you cannot use any network connection.
+
+<p> <b>Old quizzes</b>:
+    <ul>
+    <li>2012 - <a href="q12_3.pdf">Quiz 3</a>, <a href="s12_3.pdf">Quiz 3 Solutions</a></li>
+    <li>2011 - <a href="q11_3.pdf">Quiz 3</a>, <a href="s11_3.pdf">Quiz 3 Solutions</a></li>
+    <li>2010 - <a href="q10_3.pdf">Quiz 3</a>, <a href="https://web.mit.edu/6.033/www/protected/s10_3.pdf">Quiz 3 Solutions</a></li>
+    <li>2009 - <a href="http://mit.edu/6.033/www/assignments/q09_3_ns.pdf">Quiz 3</a>, <a href="http://mit.edu/6.033/2009/wwwdocs/s09_3.pdf">Quiz 3 Solutions</a></li>
+    <li>2008 - <a href="http://mit.edu/6.033/www/assignments/q08_3_ns.pdf">Quiz 3</a>, <a href="http://mit.edu/6.033/2008/wwwdocs/s08_3.pdf">Quiz 3 Solutions</a></li>
+    <li>2007 - <a href="http://mit.edu/6.033/2007/wwwdocs/q07_3solns.pdf">Quiz 3 Solutions</a></li>
+    <li>2006 - <a href="http://mit.edu/6.033/2006/wwwdocs/q06_3_sols.pdf">Quiz 3 Solutions</a></li>
+    <li>2005 - <a href="http://mit.edu/6.033/2005/wwwdocs/solutions/q05_3sols.ps">Quiz 3 Solutions</a></li>
+    <li>2004 - <a href="http://mit.edu/6.033/2004/wwwdocs/handouts/solutions/q04-3-solutions.pdf">Quiz 3 Solutions</a></li>
+    <li>2003 - <a href="http://mit.edu/6.033/2003/wwwdocs/handouts/quiz3.ps">Quiz 3</a>, <a href="http://web.mit.edu/6.033/2003/wwwdocs/handouts/q3-solutions.ps">Quiz 3 Solutions</a></li>
+    </ul>
+
+<!--
+<p>A quiz review is currntly planned for Tuesday May 19.  Details will be released soon.</p>
+
+<p> There will be a quiz review from 7:00 to 9:00 PM, Tuesday, May
+     22nd, room TBA. During this time the TAs will go over an
+     outline of the covered subjects and explain a few questions from
+     the Problems and Solutions section of the class notes.<br/>
+     <b>Slides:</b> <a href="../lecnotes/q3review-security.ppt">Security slides (ppt)</a><br/>
+     <b>Notes:</b> <a href="../lecnotes/q3review-disttran.txt">Distributed Transactions notes</a></p>
+
+<p> A subset of the staff (mostly TAs) will be holding marathon office
+    hours prior to the quiz. </p>
+-->
+
+<!--  End Page Content  -->
+<!-- ------------------ -->
+
+
+
+</td></tr> 
+<tr bgcolor="#999999" height="20">
+<td style="padding-left: 10px; padding-top: 10px; padding-bottom: 10px;">
+
+<p><font style="font-size: 12px;">
+	Questions or comments regarding 6.033? Send e-mail to the 6.033 staff at <span class="email_autofill">6.033-staff at mit.edu</span> or to the 6.033 TAs at <span class="email_autofill">6.033-tas at mit.edu</span>.
+</font></p> 
+
+<p><font style="font-size: 12px;">
+<b><a href="#top">Top</a></b> // <b><a href="../index.shtml">6.033 home</a></b> //
+
+</font></p></td></tr></tbody></table></td></tr></tbody></table> 
+</body></html>

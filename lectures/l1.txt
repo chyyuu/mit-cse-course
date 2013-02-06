@@ -1,0 +1,232 @@
+6.033 2011 Lecture 3: Client/server, RPC
+
+Modularity
+  how to impose order on complex programs?
+  break into modules
+  [big system blob => components, interactions]
+  goal: decouple, narrow set of interactions
+
+Tools for Modularity
+  programmers need help!
+  most basic example: procedure call
+    F() { x = 1; y = G(2); ... }
+    G(a) { b = a + 1; return b }
+  helps control complexity:
+    clear what interaction between F and G is (G's arguments and return value)
+    F and G don't depend on each other's internals
+
+Does procedure call *enforce* modularity?
+What actually happens when F calls G?
+  remember 6.004: they communicate via a stack in memory
+  STACK
+  -----
+  1      (x: F stores its variables in memory, often on stack)
+  2      (a: F puts argument to G on stack)
+  ret PC <-- SP points here after call
+  3
+
+F and G share memory, registers, and CPU time
+  So they need to cooperate, avoid wrecking shared environment
+
+Call Contract
+  F sets SP sensibly for G
+  G doesn't modify F's variables in memory
+  G returns (no infinite loop)
+  G doesn't wedge environment (use up all heap mem, crash, &c)
+
+Do languages enforce the call contract?
+  C, C++: no (F and G can easily violate contract)
+  Java: somewhat (prevents wild memory writes, allows memory exhaustion)
+        has a history of enforcement bugs in its very complex runtime
+
+Enforced Modularity via Client/Server
+  can we avoid sharing memory, CPU, resources altogether?
+  yes:: put F and G on separate machines
+  interact only w/ msgs
+  [diagram: two boxes with a wire]
+  Examples: web, AFS, X windows (next week)
+
+Code
+  Client:
+    put args in msg (e.g. URL)
+    send msg
+    wait for reply
+    read result from reply
+  Server:
+    wait for req msg
+    get args
+    compute...
+    put result in reply msg (e.g. content of index.html) send reply
+    goto start
+
+C/S Enforces Modularity
+  1. protects memory content
+  2. separates resources (heap allocator, CPU, disk, &c)
+  3. no fate sharing (crashes and wedges don't propagate)
+  4. forces a narrow spec (just msg content)
+  c/s enforces most of call contract
+    bugs can still propagate via messages
+    but that's a fairly restricted channel
+    easier to examine than all of memory
+  spec still programmer's problem: ensure server returns the right answer
+
+Other uses of C/S
+  allows many computers to share same data: AFS shares, wikipedia
+  allows remote access: two bank computers transferring funds
+  allows trusted third party: EBay provides controlled sharing of auction state
+
+simplifying C/S with RPC
+  c/s involves a lot of nasty error-prone msg formatting &c
+  why not hide details behind real procedure interface?
+
+Example:
+  imagine this is your original single-program ebay implementation:
+  ui():
+    print bid("123", 10.00);
+  bid(i, a):
+    ...
+    return winning;
+  you want to split at bid() w/o re-writing this code
+  idea: transparent stubs
+
+   client            srvr
+    stub             stub      
+
+UI->pack............unpack->BID
+     |                 
+    wait             
+     |                 
+  <-unpack...........pack<-    
+
+Client stub
+  procedure that *looks* like bid() but sends msg
+  so there are *two* bid() procedures!
+  bid(i, a):
+    i,a -> msg
+    send msg
+    wait for reply
+    w <- reply msg
+    return w
+  now *original* ui() is using a server!
+
+Server stub
+  want to use original bid() code on server
+  wrap it in a "dispatch" loop:
+  dispatch():
+    while True:
+      read msg
+      i, a <- msg
+      w = bid(i, a)
+      msg <- w
+      send msg
+
+pack / unpack
+  also called marshalling
+  packing must put data in msg
+    wire sends stream of bits, so msg must be sequence of bits/bytes
+    whereas some data is structured, e.g. strings
+    different machines have different native representations
+  typical request message format:
+    proc# id 3 '1' '2' '3' 10.00???
+  some data types are hard to marshal
+    follow pointers? may be a lot of data, cycles
+    objects w/ methods and private state? (Java RMI deals well, but complex)
+  reply message:
+    id 1
+
+Automatic stub generation
+  tool to look at procedure declarations: run it on bid()
+  generate stub procedures, w/ pack/unpack code
+  saves programming, avoids mistakes
+
+RPC has been very successful
+  provides benefits of C/S (modularity, sharing, &c)
+  with familiar procedure interface
+  hides messy message formatting
+
+RPC != PC  --  failures!
+  despite syntactic similarity
+  example: amazon web, warehouse back-end
+  link is a TCP connection
+  [time-lines]
+  RPC 1: stock(isbn) -> count
+    what if network loses request? 
+      you send it on the TCP connection, but the connection fails
+    loses reply?
+    warehouse crashes?
+    stub can hide these failures by periodic resend
+      wrap loop around stub
+    resend leads to duplicates -- is that OK for stock()?
+    don't want to wait forever, so stock() can return new error: "no response"
+
+is periodic resend enough to cope with network and server failures?
+  RPC 2: ship(isbn, addr) -> yes/no
+    ship() has side effects, while stock() does not
+    request lost? (resend OK)
+    reply lost? (resend *not* OK)
+    warehouse crashes? (uncertainty regardless of resend)
+
+how to handle failures for side-effecting RPCs?
+  "at most once" RPC mechanism
+  client gives a unique ID to each call
+  client keeps re-sending (repeats the same ID)
+  server remembers request IDs in a table
+  server returns "already done" if request ID already in the table
+    this is what enforces "at most once"
+    can remember return value and re-return it
+  server might lose table (if it crashes) so it may also say "unknown"
+    client/server must then re-sync IDs
+  client-visible outcomes of at-most-once RPC:
+    success (1 time)
+    no response (0 or 1 times)
+    "already done" (1 time)
+    "unknown" (0 or 1 times)
+
+is at-most-once good enough for ship()?
+  better than just retry!
+  not enough if customer wants to know the outcome
+  not enough if amazon want to charge credit card iff success
+  you can do better, requires much more machinery, check back in April
+
+RMI client code slide  (see below)
+  you feed first part to the rmic stub generator
+    it produces implementation of BidInterface for main() to call
+    and server dispatch stubs
+    the server stubs call your implementation of bid() (not shown)
+  public interface ensures client/server agree on arguments (msg format)
+  procedure call to bid() looks very ordinary!
+    but around it there are non-standard aspects
+  Naming.lookup() -- which server to talk to?
+    server has registered itself with Naming system
+    lookup() returns a proxy BidInterface object
+    has bid() method, also remembers server identity
+  try/catch
+    this is new, every remote call must have this, for timeouts/no reply
+
+We will worry a lot more about coping with failures later in course!
+
+Summary
+  Enforced modularity via C/S
+  RPC automates details
+  RPC semantics are different
+  Next: enforced mod on same machine
+
+-------
+
+RMI code slide (l4.ppt):
+
+public interface BidInterface extends Remote {
+  public String bid(String s) throws RemoteException;
+}
+
+public static void main (String[] argv) {
+    try {
+      BidInterface ebay = (BidInterface)
+           Naming.lookup("//xxx.ebay.com/Bid");
+      winning = ebay.bid("123");
+      System.out.println(winning);
+    } catch (Exception e) {
+      System.out.println ("BidClient exception: " + e);
+    }
+  }
+

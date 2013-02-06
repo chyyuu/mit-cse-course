@@ -1,0 +1,196 @@
+6.033 2012 Lecture 19: Ordering and consistency
+
+Topics:
+  Replication.
+  Time.
+  Vector timestamps.
+  Causal consistency.
+
+Fault-tolerance.
+  Goal: building reliable systems from unreliable components.
+  So far: transactions for crash-recovery on a single server.
+    Important to recover from failures.
+  How to continue despite failures?
+    General plan: multiple servers, replication.
+    Already seen some cases: DNS, RAID, ..
+  This week: how to handle harder cases.
+    E.g., replicated file storage, replicated master for 2PC, ..
+
+Example: file storage.
+  Simple design: single file server (e.g., home directory in AFS).
+  What if AFS server crashes?  Can't access your files.
+  Alternative design: keep copies of your files on your desktop, laptop, etc.
+  Storage is now replicated: can access your files despite failures.
+
+Primary challenge in replication: consistency between replicas.
+  User edits file on one computer, change may not be there on another computer.
+  How to deal with this problem?
+  Today: optimistic replication.
+    Tolerate inconsistency, and fix things up later.
+    Works well when out-of-sync replicas are acceptable.
+  Wednesday: pessimistic replication.
+    Ensure strong consistency between replicas.
+    Needed when out-of-sync replicas can cause serious problems.
+
+Resolving inconsistencies.
+  Suppose we have two computers: laptop and desktop.
+  File could have been modified on either system.
+  How can we figure out which one was updated?
+  One approach: use timestamps to figure out which was updated recently.
+    Many file synchronization tools use this approach.
+
+Use of time in computer systems.
+  Time is used by many distributed systems.
+    E.g., cache expiration (DNS, HTTP), file synchronizers, Kerberos, ..
+  Time intervals: how long did some operation take?
+  Calendar time: what time/date did some event happen at?
+  Ordering of events: in what order did some events happen?
+
+Measuring time intervals.
+  Computer has a reasonably-fixed-frequency oscillator (e.g., quartz crystal).
+  Represent time interval as a count of oscillator's cycles.
+    time period = count / frequency
+    e.g., with a 1MHz oscillator, 1000 cycles means 1msec.
+
+Keeping track of calendar time.
+  Typically, calendar time is represented using a counter from some fixed epoch.
+  For example, Unix time is #seconds since midnight UTC at start of Jan 1, 1970.
+    [ demo: date +%s shows number of seconds after the Unix epoch ]
+  Can convert this counter value into human-readable date/time, and vice-versa.
+    Conversion requires two more inputs: time zone, data on leap seconds.
+
+What happens when you turn off your computer?
+  "Real-Time Clock" (RTC) chip remains powered, with battery / capacitor.
+  Stores current calendar time, has an oscillator that increments periodically.
+
+Maintaining accurate time.
+  Accuracy: for calendar time, need to set the clock correctly at some point.
+  Precision: need to know oscillator frequency (drift due to age, temp, etc).
+
+Synchronizing a clock over the internet: NTP.
+  Query server's time, adjust local time accordingly.
+  [ slide with simple time sync protocol ]
+
+  Need to take into account network latency.
+  Simple estimate: rtt/2.
+  When does this fail to work well?
+    Asymmetric routes, with different latency in each direction.
+    Queueing delay, unlikely to be symmetric even for symmetric routes.
+    Busy server might take a long time to process client's request.
+  Can use repeated queries to average out (or estimate variance) for second two.
+
+[ demo: ntp ]
+  NTP server in Australia, from au.pool.ntp.org.
+  % ntpdate -d 203.17.251.1
+
+  My laptop can synchronize to server in Australia, with high accuracy.
+  Repeated tries help estimate variability due to network congestion, server, ..
+  "Reference time" is the time at which the server last adjusted its clock.
+  "Originate time" is when the server send its reply (by its clock).
+  "Transmit time" is when my laptop sent the request (by its clock).
+
+  % ntpdc -n 203.17.251.1
+  ntpdc> peers
+
+What happens if a computer's clock is too fast (e.g., 5 seconds ahead)?
+  Naive plan: reset it to the correct time.
+  Bad idea:
+    Can break time intervals being measured (e.g., negative interval).
+    Can break ordering (e.g., older files were created in the future).
+    "make" is particularly prone to errors when time goes backwards,
+      since it uses timestamps to decide what needs to be recompiled.
+  Principle: time never goes backwards.
+  Idea: temporarily slow down or speed up the clock.
+    Typically cannot adjust oscillator (fixed hardware).
+    Adjust oscillator frequency estimate, so counter advances faster / slower.
+
+Improving precision.
+  If we only adjust our time once, an inaccurate clock will lose accuracy.
+  Need to also improve precision, so we don't need to slew as often.
+  Assumption: poor precision caused by poor estimate of oscillator frequency.
+  [ slide: adjusting local frequency estimate ]
+  Can measure difference between local and remote clock "speeds" over time.
+  Adjust local frequency estimate based on that information.
+  In practice, may want more stable feedback loop (PLL): look at control theory.
+
+File reconciliation with timestamps.
+  Key problem: determine which machine has the newer version of the file.
+  Strawman: use the file with the highest mtime timestamp.
+
+  H1: a=1  ->H2
+  H2:            R(a)  a=3  ->H1
+
+  Works when only one side updates the file per reconciliation.
+
+  H1:            a=1   ->H2
+  H2: R(a)  a=2             ->H1
+
+  Need a better plan to detect concurrent updates (both sides updated).
+  Better plan:
+    Track last reconcile time on each machine.
+    Send file if changed since then, and update last reconcile time.
+    When receiving file, check if local file also changed since last reconcile.
+
+New outcome: timestamps on two versions of a file could be concurrent.
+  Key issue with optimistic concurrency control: optimism was unwarranted.
+  Generally, try various heuristics to merge changes (text diff/merge, etc).
+  Worst case, ask user (e.g., if edited same line of code in C file).
+
+File reconciliation across multiple machines.
+  H1: a=1  ->H2
+  H2:            R(a)  a=2  ->H1
+  H3:                            R(a)  a=3  ->H1
+
+  Problem: H1 and H2's updates overwritten when H3 sends over its version of a.
+
+Goal: no lost updates.
+  V2 should overwrite V1 if V2 contains all updates that V1 contained.
+  Simple timestamps can't help us determine this.
+
+Idea: vector timestamps.
+  Instead of one timestamp, store a vector of timestamps from each machine.
+  Entry in vector keeps track of the last time that computer wrote the file.
+  V1 is newer than V2 if all of V1's timestamps are >= V2's.
+  V1 is older than V2 if all of V1's timestamps are <= V2's.
+  Otherwise, versions V1 and V2 were modified concurrently, so conflict.
+  If two vectors are concurrent, one computer modified file
+    without seeing the latest version from another computer.
+  If vectors are ordered, everything is OK as before.
+
+  [ diagram: version vectors for above scenarios ]
+
+Cool property of version vectors:
+  A node's timestamps are only compared to other timestamps from the same node.
+  Time synchronization not necessary for reconciliation w/ vector timestamps.
+  Can use a monotonic counter on each machine.
+
+Does calendar time still matter?
+  More compact than vector timestamps.
+  Can help synchronize two systems that don't share vector timestamps.
+
+[ did not get to the things below in lecture ]
+
+Synchronizing multiple files.
+  Strawman: as soon as file is modified, send updates to every other computer.
+  What consistency guarantees does this file system provide to an application?
+
+  H1: a=1  ->H2                                    .. ->H3
+  H2:           R(a)  b="a"  ->H1  ->H3
+  H3:                                    R(b)  R(a)
+
+  Relatively few guarantees, aside from no lost updates for each file.
+  In particular, can see changes to b without seeing preceeding changes to a.
+  Counter-intuitive: updates to diff files might arrive in diff order.
+
+Goal: causal consistency.
+  If x causally precedes y, then everyone sees x before y.
+  x causally precedes y if some system observed x and then did y.
+
+Ensuring causal consistency.
+  Each machine records highest vector timestamp received from other machines.
+  Updates include sender's highest received VT, along with the file's VT.
+  Receiver buffers incoming messages until msg.rcvd_vt <= highest received VT.
+  Ensures each receiver waits to process messages in a causal order.
+
+[ slide: summary ]
+

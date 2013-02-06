@@ -1,0 +1,317 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+<title>6.033 / Preparation for Recitation 16</title>
+<meta http-equiv="pragma" content="no-cache">
+<link rel="stylesheet" href="../6033.css" type="text/css">
+
+<script type="text/javascript">
+    function autofill_email() {
+        var spans = document.getElementsByTagName("span");
+        for (i = 0; i < spans.length; i++) {
+            if (spans[i].className != "email_autofill")
+                continue;
+            spans[i].innerHTML = spans[i].innerHTML.replace(/ at /, "@");
+        }
+    }
+
+    function page_onload() {
+        autofill_email();
+    }
+</script>
+
+</head>
+
+<body bgcolor="#ffffff" text="#000000" onLoad="page_onload()">
+<table cols="3" width="100%" height="100%" border="0" cellspacing="0"
+cellpadding="0">
+  <tbody>
+    <!-- Header row -->
+    <tr height="40">
+      <td colspan="3">
+	<table width="100%" height="40" border="0" cellspacing="0"
+	       cellpadding="0">
+	  <tbody>
+	    <tr> 
+	      <td width="531" bgcolor="#000000">
+		<div align="left" class="titleHead header">
+		  <a name="top"><b>6.033: Computer Systems Engineering</b></a>
+		</div>
+	      </td>
+	      <td bgcolor="#8a0a0a" halign="center" valign="center" width="234">
+		<div align="center" class="titleHead header">
+		  <b>Spring 2012</b>
+		</div>
+	      </td> 
+	    </tr> 
+	  </tbody> 
+      </table>
+      </td> 
+    </tr> 
+    <!-- horiz line --> 
+    <tr> 
+      <td colspan="3" height="5" bgcolor="#8a0a0a"> <br> </td> 
+    </tr> 
+    <tr> 
+      <!-- Menu --> 
+      <td bgcolor="#8a0a0a" valign="top" width="180"> <table cols="2"
+							     rows="1"
+							     border="0"
+							     cellspacing="0"
+							     cellpadding="0"
+							     width="100%"
+							     height="100%">
+	  <tbody> 
+	    <tr> 
+	      <td valign="top">
+		<table cols="1" rows="1" border="0" cellspacing="0"
+				       cellpadding="0" width="100%"> 
+		  <tbody> 
+		    <tr> 
+		      <td> <div class="menuHead"> <a href="../index.shtml"
+			    class="menuItem"> Home /
+			    News</a></div></td>
+		    </tr> 
+		    <tr> 
+		      <td> <div class="menuHead"> <a href="../schedule.shtml"
+						   class="menuItem">Schedule</a> </div></td>
+		    </tr> 
+                    <tr>
+                       <td><div class="menuHead"><a href="https://6033.scripts.mit.edu:444/submit.cgi"
+                                                    class="menuItem">Submissions</a>
+                      </div></td>
+                      </tr>
+		    <tr> 
+		      <td>
+			  <hr>
+		      </td> 
+		    </tr> 
+		    <tr> 
+		      <td> <div class="menuHead"> <a href="../general.shtml"
+						   class="menuItem">General Information </a> </div></td>
+		    </tr> 
+		    <tr> 
+		      <td> <div class="menuHead"> <a href="../general.shtml#staff" class="menuItem">Staff List</a>
+		      </div></td> 
+		    </tr> 
+		    <tr> 
+		      <td> <div class="menuHead"> <a href="../sections.shtml" class="menuItem">Recitations</a>
+		      </div></td> 
+		    </tr> 
+		    <tr> 
+		      <td> <div class="menuHead"> <a href="../general.shtml#tas" class="menuItem">TA Office Hours</a>
+		      </div></td> 
+		    </tr> 
+		    <tr> 
+		      <td>
+			  <hr> 
+		      </td> 
+		    </tr> 
+		    <tr> 
+		      <td> <div class="menuHead"> <a href="http://www.piazza.com/mit/spring2012/6033" class="menuItem">Discussion / feedback</a>
+		      </div></td> 
+		    </tr> 
+		    <tr> 
+		      <td> <div class="menuHead"> <a href="../faq.shtml" class="menuItem">FAQ</a>
+		      </div></td> 
+		    </tr> 
+		    <tr> 
+		      <td> <div class="menuHead"> <a href="../errata.shtml " class="menuItem">Class Notes Errata</a>
+		      </div></td> 
+		    </tr> 
+		    <tr> 
+		      <td> <div class="menuHead"> <a href="../writing_examples.shtml" class="menuItem">Excellent Writing Examples</a>
+		      </div></td> 
+		    </tr> 
+		    <tr> 
+		      <td>
+			  <hr> 
+		      </td> 
+		    </tr> 
+		    <tr> 
+		      <td> <div class="menuHead"> <a href="http://mit.edu/6.033/2011/wwwdocs"
+						   class="menuItem">2011 Home</a><br> 
+		      </div></td> 
+		    </tr> 
+                    <tr>
+                      <td> <div class="menuHead">
+<a rel="license" href="http://creativecommons.org/licenses/by/3.0/us/"><img alt="Creative Commons License" style="border-width:0" src="http://i.creativecommons.org/l/by/3.0/us/88x31.png" /></a>
+<br>
+                      </div></td>
+                    </tr>
+		  </tbody> 
+	      </table></td> 
+	      <td width="3" bgcolor="#8a0a0a"> <br> </td> 
+	    </tr> 
+	  </tbody> 
+      </table></td> 
+      <!-- End Menu --> 
+      <td colspan="2"> <table border="0" cellspacing="0" cellpadding="0" width="100%" height="100%"> 
+	  <tbody> 
+	    
+	    <tr> 
+	      <td style="padding: 10px;" valign="top" align="left">
+
+
+
+<!-- ------------------ -->
+<!-- Begin Page Content --> 
+
+<p class="TitleHead">Preparation for Recitation 16</p> 
+
+<p> Read <a href="../papers/unisonimpl.pdf"> How to Build a File
+    Synchronizer</a> by Trevor Jim, Benjamin Pierce and Jerome
+    Vouillon. (This unpublished paper is not in the handouts.)  You
+    can find out more information about Unison at the <a
+    href="http://www.cis.upenn.edu/~bcpierce/unison/">The Unison Home
+    Page</a>. A <a
+    href="http://www.cis.upenn.edu/~bcpierce/unison/download/releases/stable/unison-manual.html">User
+    Manual and Reference Guide</a> is also available. (You may wish to read read
+    Section 10.4 of the course notes before reading the Unison
+    paper --- Section 10.4 shows the essence of the ideas, while the
+    Unison paper shows many of the real-world problems that crop up
+    when attempting to implement them!)</p>
+
+<p> Unison is designed to solve the problem of reconciling two file
+    repositories when both are subject to asynchronous changes. The
+    industry uses two terms to describe this process ---
+    "synchronization" and "reconciliation."  In 6.033 we will try to
+    use the term "reconciliation" for this process and reserve the
+    term "synchronization" for processes that involve setting two or
+    more clocks to the same time.</p>
+
+<p> A common use of Unison is to maintain consistency between a set of
+    files in your Athena home directory and a laptop. Each time you
+    run Unison, the program would:</p>
+
+<ul>
+
+<li> Discover new files added to the Athena directory and copy them to
+     the laptop</li>
+<li> Discover new files added to your laptop and copy them to your
+     Athena directory</li>
+<li> Discover files deleted from your Athena directory and delete them
+     from your laptop</li>
+<li> Discover files delete from your laptop and delete them from your
+     Athena directory</li>
+<li> Propagate any metadata changes from one system to the other (ie:
+     changes in file modification time)</li>
+<li> Make an attempt to inform the user of its proposed actions and
+     receive approval</li>
+<li> Update everything atomically without losing any data in the
+     process</li>
+
+</ul>
+
+<p> As the authors note, it is rather straightforward to build a
+    simple file reconciler; it is much harder to build one that is
+    efficient over slow links, that can work across operating systems,
+    and that is tolerant of failures in either the systems being
+    reconciled or the network.</p>
+
+<p> Reconciling files between multiple computers is a longstanding
+    problem among computer scientists, born from the practical problems
+    of maintaining a consistent environment across multiple
+    machines. Early versions of Berkeley 4.2 Unix (circa 1984) came
+    with a one-way file reconciler called <b>rdist</b>.  This program
+    inspired Tridgell <a
+    href="http://samba.org/%7Etridge/phd_thesis.pdf">[PhD Thesis]</a>
+    to write <b>rsync</b>, a program that performed much the same
+    function, but improved performance with the <a
+    href="http://samba.anu.edu.au/rsync/tech_report/">"rsync
+    algorithm"</a> --- a technique for incrementally updating large
+    files such as logfiles that tend to be extended rather than
+    rewritten.  Both <b>rdist</b> and <b>rsync</b> are more
+    properly thought of as efficient publication systems rather than
+    reconciling systems: they will propagate changes from a central
+    computer to other nodes across a network, but they are not very
+    good at bi-directional reconciliation. Both of these programs are
+    further limited in that they only operate under Unix, while Unison
+    runs under Windows and MacOS as well.</p> Russ Cox and William
+    Josephson created a multi-host file synchronizer called <a
+    href="http://pdos.lcs.mit.edu/~rsc/tra/">tra</a> which is pretty
+    neat, but it only runs on Unix.</p>
+
+<P> As the authors of the paper make clear, much of their effort has
+    been spent on making Unison work in a cross-platform manner. For
+    example, Unix file modification times have a resolution of 1
+    second, while Windows file modification times have a resolution of
+    2 seconds. The solution that Unison takes is to mask the bottom
+    bit of the Windows file modification times. One of the
+    difficulties in writing Unison is that the authors needed to
+    discover these inter-operating system differences by trial and
+    error: there is no single document that lists them all.</p>
+
+<hr>
+
+<p> Unison is unquestionably a technical success: the program is
+    included in multiple Unix distributions and members of the 6.033
+    staff have been using it since 1998. Nevertheless, Unison does
+    have its drawbacks, some of which can be inferred from the
+    paper:
+
+<ul>
+
+<li> In Section 2, Jim, Pierce and Vouillon argue that "the most
+     important goal of any file synchronizer is safety," but then they
+     point out in Section 4 that if Unison cannot read the files in
+     one file archive due to a hardware failure, it will proceed to
+     delete all of the files in the other archive. Obviously, this is
+     precisely the wrong thing to do (despite the authors' claim
+     that Unison had only experienced this catastrophic failure once,
+     rest assured that it happens with some regularity). Why do you
+     think such catastrophic failures happen, and how could Unison be
+     modified to make them less likely? What 6.033 design principles
+     does Unison violate which makes such catastrophic failures more
+     likely?</li>
+
+<li> Unison is a pairwise reconciler; what if you have three computers
+     that you want to keep in sync? One way to set up such a network
+     is to have A reconcile with B and B reconcile with C. This
+     actually works in practice (a point that the authors
+     fail to make). What do you think happens if you have C in turn
+     reconcile with A? Will updates be propagated more quickly, or
+     will the system fail to converge to a stable state?</li>
+
+<li> Unison generally fails when a file in one repository cannot be
+     adequately represented in another one. For example, a file that
+     has a colon in its filename on Unix cannot be reconciled onto
+     either a Mac or a Windows file system. Likewise, the author note
+     that "there is no system call to find out the maximum length of
+     file names in a (possibly remotely-mounted) directory."
+     (p. 8). Do you believe that these limitations are inherent in the
+     construction of a multi-platform file reconciler, or do you think
+     that they could have been detected and coded around?</li>
+
+</ul>
+
+<p>
+    The authors of the paper argue that they have taken several steps
+    to improve performance, but in their table at the top of page 9
+    (Figure 2) they note that their program is slower in every case
+    than Rsync. Why do you think this is so? What else is wrong with
+    the information provided in the table? Despite being compared with
+    rsync, Unison cannot interoperate with it. Do you think that this
+    was a good design decision?
+
+<p>
+    After reading the paper, would you trust Unison to reconcile your
+    files? Why or why not?
+
+<!--  End Page Content  -->
+<!-- ------------------ -->
+
+
+
+</td></tr> 
+<tr bgcolor="#999999" height="20">
+<td style="padding-left: 10px; padding-top: 10px; padding-bottom: 10px;">
+
+<p><font style="font-size: 12px;">
+	Questions or comments regarding 6.033? Send e-mail to the 6.033 staff at <span class="email_autofill">6.033-staff at mit.edu</span> or to the 6.033 TAs at <span class="email_autofill">6.033-tas at mit.edu</span>.
+</font></p> 
+
+<p><font style="font-size: 12px;">
+<b><a href="#top">Top</a></b> // <b><a href="../index.shtml">6.033 home</a></b> //
+
+</font></p></td></tr></tbody></table></td></tr></tbody></table> 
+</body></html>

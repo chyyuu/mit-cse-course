@@ -1,0 +1,269 @@
+Threads
+=======
+
+Topics covered in this lecture:
+  Threads.
+  Condition variables.
+  Preemption.
+
+Recall from last two lectures: running multiple programs on a computer.
+  So far, we've been assuming that we have one CPU per program.
+  How can we handle more programs than CPUs?
+  Plan: virtualize the processor.
+    Virtual processor is called a "thread".
+    Provided by almost every operating system, much like virtual memory.
+    Used extensively by applications: use multiple CPUs, structuring tool, ..
+    Significantly influences design of the rest of the OS.
+
+What is a virtual CPU, or a "thread"?
+  Keeps the state of a runnable program.
+  API:
+    suspend() saves the current CPU state to some memory location.
+    resume() restores CPU state from some memory location.
+  Multiplexing one physical CPU between two threads:
+    suspend A
+    resume B
+    suspend B
+    resume A
+
+[ slide: send() from previous lecture ]
+  Recall that our send() code would busy-wait for buffer space.
+  Uses lots of CPU time.
+  If we only have one CPU, the receive() function might never run!
+  How do we allow other things (such as receive) to execute too?
+
+Idea: modify our virtual CPU to provide a new abstraction.
+  [ slide: send() and receive() with yield ]
+  The yield() system call gives up the physical CPU to another thread.
+    If another thread exists (e.g., a receive), it will get to execute.
+  The yield() system call will return at some later time.
+    E.g., when some other thread also calls yield().
+
+What happens inside of yield()?
+  Suspend currently running thread.
+  Choose a new thread to execute.
+  Resume the new thread.
+  Effectively the implementation of threading.
+  Let's look at this in more detail..
+
+Data structures:
+  A stack for every thread.
+  threads[] array:
+    - sp: saved stack pointer.
+    - state: RUNNING  -- actively using a CPU, or
+             RUNNABLE -- ready to go, if a CPU is free.
+  cpus[] array:
+    - thread: index of the thread running on that CPU.
+  t_lock: used to make concurrent suspend/resume operations atomic.
+
+[ slide: yield ]
+  Complicated code, so let's see what happens when send() calls yield()..
+
+  [ slide: step 1, suspend current thread ]
+  How does yield() know which thread is currently executing?
+    Some per-CPU register (call it CPU) contains the current CPU number.
+    cpus[] array contains the thread running on that CPU.
+  Change state from RUNNING (currently executing) to RUNNABLE (can execute).
+    Allows some CPU (either this one or another one) to run this thread later.
+  Save the current value of the SP register to the current thread.
+    Will see in a little bit why it might be sufficient to save only SP.
+
+  [ slide: step 2, find another thread ]
+  Look through the threads array for a RUNNABLE thread.
+  Skip ones that are RUNNING on other CPUs.
+
+  [ slide: step 3, resume the chosen thread ]
+  First, mark the chosen thread as RUNNING, so no other CPU runs it.
+  Restore the CPU's SP register from the thread's saved value.
+  Return, which starts running the chosen thread.
+
+Why does the chosen thread start running when yield() returns?
+  Let's look at what happens at the hardware level in more detail..
+
+Example: two CPUs, A and B.
+    CPU A           CPU B
+
+  .. T0 ..        .. T1 ..
+
+  yield()
+  save T0's SP
+  set RUNNABLE
+  (run T2..)
+                  yield()
+                  save T1's SP
+                  SP <- T0's SP
+                  set RUNNING
+                  return
+                  .. T0 ..
+
+  T0's stack, after it calls yield and becomes RUNNABLE (stack grows down):
+    bb                          ## send's arguments
+    m                           ## send's arguments
+    return addr into send       <- A's SP, then threads[0].sp, then B's SP
+
+  T1's stack:
+    ## its own variables
+    return addr into somewhere  <- B's SP, then threads[1].sp
+
+  Diagram: A's SP, B's SP, thr[0].state, thr[0].sp, thr[1].state, thr[1].sp
+  Once CPU B sets SP to threads[0].sp, return goes back to T0's send!
+
+Why does it suffice to just save / restore SP?
+  We assume the calling function saves anything it cares about onto the stack.
+  The call instruction saves the PC, and return restores the PC.
+  So, setting the SP is effectively the point at which we've switched threads.
+    yield() is called by one thread, but returns into a different thread.
+    The second half of yield (after SP switch) is actually completing
+      some previous yield.
+
+  Note: we're making some assumptions here!
+    Namely, assume compiler doesn't modify SP in the middle of yield.
+    Also, assume compiler puts the id variable in a register, not on stack.
+    In a real OS, this code is carefully written in assembly, not in C.
+
+What does the lock protect?
+  Atomically set thread[].state and thread[].sp.
+  Atomically find a RUNNABLE thread and mark it RUNNING.
+  Subtle: don't let another CPU use the calling thread's stack,
+    until we have changed this CPU's SP to point somewhere else.
+
+[ slide: send with yield, again ]
+  We can use yield() to switch to another thread.
+  But send() and receive() still use up CPU time.
+    E.g., send() waits for some receiver to free slot.
+    E.g., receive() waits for some sender to put a message.
+    Repeated calls to yield() can be inefficient.
+  Goal: want a thread to go to sleep when it has nothing to do.
+    Must arrange for a second thread to wake it up at some point.
+
+Condition variables:
+  A condition variable (cv) object names a condition that a thread can wait for.
+  API:
+    wait(cv, lock): go to sleep (release lock while sleeping, re-acquire later).
+    notify(cv): wake up any threads that have gone to sleep w/ same cv.
+  Condition variable itself has no memory/state.
+    wait() and then notify(): wait returns.
+    notify() and then wait(): wait does not return.
+    This is potentially prone to race conditions.
+    The lock argument to wait() helps solve this -- will return to it later.
+
+[ slide: using condition variables in send and receive ]
+  Two condition variables for each bb:
+    bb.full: send waits if full, receive notifies.
+    bb.empty: receive waits if empty, send notifies.
+
+Do we really need a while loop with condition variables?
+  Strawman alternative: if buffer is full, wait() and then store message.
+  Problem: many senders might wake up from wait() after just one receive.
+  Must re-check that there's still space after we re-acquired the lock.
+
+What happens if send() notifies but there's no receiver waiting?
+  Noone gets woken up, but that's OK: a later receiver will re-check (in>out).
+
+[ demo: two `urxvt -fn xft:Monospace-14 +sb` side-by-side ]
+  Little program spawns two threads that ping-pong the 'turn' variable.
+
+  ## start with the correct wait()
+  left% vi waitdemo.c
+  rght% make waitdemo
+  rght% ./waitdemo
+
+  ## change wait(&cv, &lck) to release(&lck), waitx(&cv), acquire(&lck)
+  rght% make waitdemo
+  rght% ./waitdemo
+
+Why doesn't waitdemo work if we release the lock before calling wait?
+  Other thread changes turn and calls notify(), all before we call wait().
+  Because cv is stateless, wait() will sleep forever.
+  Known as the "lost notify" or "lost wakeup" problem.
+
+Avoiding lost notify.
+  T0: wait(cv, lock):
+    Caller must hold the lock and check condition (turn, bb.in-bb.out<N, ..)
+      before calling wait.
+    wait() atomically releases lock and marks thread as waiting.
+      No other thread can come in the middle and issue a notify that gets lost.
+    wait() re-acquires lock before returning: just for symmetry, not critical.
+  T1: notify(cv):
+    Caller must notify() after updating data structure (e.g., turn or bb).
+    From last lecture: must hold lock while updating data structure.
+  Why does this avoid lost notify?
+    Before-or-after atomicity: T0 check/wait called before OR after T1 update.
+    T0 before T1: T0 check -> T0 wait -> T1 update -> T1 notify.  Not lost.
+    T1 before T0: T1 update -> T0 check.  No wait, so no lost notify.
+      In this case, T0 doesn't go to sleep because the check sees T1's update.
+  In practice, condition associated with data structure, which has a lock.
+    This is the lock that's associated with the cv/wait.
+
+Implementing wait and notify.
+  Changes to the thread table:
+    - new state called WAITING.
+    - new variable threads[].cvar, to help notify() find threads.
+  Q: when to release caller's lock?
+  [ slide: wait ]
+
+  A: acquire t_lock, then release caller's lock, then set to WAITING.
+  Minor point: need to modify yield, will get back to this shortly.
+
+  [ slide: wait + notify ]
+  notify() iterates over threads, changes WAITING to RUNNABLE if matching cvar.
+  CPUs that subsequently call yield() will find these RUNNABLE threads, run them.
+
+[ slide: revisiting yield -- recall original yield ]
+  Easy problem: wait() already acquired t_lock and changed state.
+    Easy fix: just delete that code.
+    [ slide: yield_wait(), first attempt ]
+
+  Hard problem: what if nothing is RUNNABLE?
+    yield_wait() will keep looping forever, while holding t_lock.
+    Other CPUs cannot acquire t_lock, even if they want to do a notify!
+      ==> yet another kind of deadlock!
+
+  Solution: release the lock inside of the loop.
+    [ slide: yield_wait() ]
+    Allows another CPU's notify to acquire t_lock and make some thread RUNNABLE.
+
+  Why do we need to also switch SP twice now?
+    Once yield_wait() releases t_lock, another CPU can run our current thread.
+    So now two CPUs have their SP pointing to the same thread's stack!
+    Can result in the stack being corrupted.
+    Fix: allocate a separate stack for use inside of yield_wait(), for each CPU.
+    Switch to this special stack before releasing t_lock.
+
+What if a thread never calls yield?
+  So far: that thread will keep running forever, no other thread will run.
+  How do we force every thread to yield periodically?
+
+Preemption:
+  Use special hardware ("timer") to periodically generate an interrupt.
+  Interrupt handler will forcibly call yield().
+  Timer interrupt:
+    push PC         ## done by CPU
+    push registers  ## not a function call, so can't assume compiler saves them
+    yield()
+    pop registers
+    pop PC
+
+  As before, yield() switches stacks, and interrupt returns to another thread.
+  Need to save registers, because interrupt might not be at function boundary.
+    But we can save them on the stack, and then just switch stacks as before.
+
+What happens if timer interrupt occurs when CPU is running yield / yield_wait?
+  Problem: t_lock already locked.
+    When timer tries to call yield(), acquire(t_lock) will hang forever.
+  Solution: hardware mechanism to disable interrupts.
+    Disable interrupts before acquiring t_lock, re-enable after releasing it.
+
+What if timer interrupt comes in when yield_wait() briefly releases t_lock?
+  Interrupts not masked because yield_wait() released t_lock.
+  Can't call yield: we would put the wrong thread to sleep!
+  Solution:
+    - first set cpus[].thread to null in yield_wait()
+    - don't call yield if cpus[].thread is null in interrupt handler
+
+Summary:
+  Threads allow running many concurrent activities on few CPUs.
+  Threads are at the core of most OS designs.
+  Looked at several tricky cases for a threading implementation:
+    yield, condition variables, preemption.
+

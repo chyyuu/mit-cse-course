@@ -1,0 +1,218 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+<title>6.033 / Preparation for Recitation 26</title>
+<meta http-equiv="pragma" content="no-cache">
+<link rel="stylesheet" href="../6033.css" type="text/css">
+
+<script type="text/javascript">
+    function autofill_email() {
+        var spans = document.getElementsByTagName("span");
+        for (i = 0; i < spans.length; i++) {
+            if (spans[i].className != "email_autofill")
+                continue;
+            spans[i].innerHTML = spans[i].innerHTML.replace(/ at /, "@");
+        }
+    }
+
+    function page_onload() {
+        autofill_email();
+    }
+</script>
+
+</head>
+
+<body bgcolor="#ffffff" text="#000000" onLoad="page_onload()">
+<table cols="3" width="100%" height="100%" border="0" cellspacing="0"
+cellpadding="0">
+  <tbody>
+    <!-- Header row -->
+    <tr height="40">
+      <td colspan="3">
+	<table width="100%" height="40" border="0" cellspacing="0"
+	       cellpadding="0">
+	  <tbody>
+	    <tr> 
+	      <td width="531" bgcolor="#000000">
+		<div align="left" class="titleHead header">
+		  <a name="top"><b>6.033: Computer Systems Engineering</b></a>
+		</div>
+	      </td>
+	      <td bgcolor="#8a0a0a" halign="center" valign="center" width="234">
+		<div align="center" class="titleHead header">
+		  <b>Spring 2012</b>
+		</div>
+	      </td> 
+	    </tr> 
+	  </tbody> 
+      </table>
+      </td> 
+    </tr> 
+    <!-- horiz line --> 
+    <tr> 
+      <td colspan="3" height="5" bgcolor="#8a0a0a"> <br> </td> 
+    </tr> 
+    <tr> 
+      <!-- Menu --> 
+      <td bgcolor="#8a0a0a" valign="top" width="180"> <table cols="2"
+							     rows="1"
+							     border="0"
+							     cellspacing="0"
+							     cellpadding="0"
+							     width="100%"
+							     height="100%">
+	  <tbody> 
+	    <tr> 
+	      <td valign="top">
+		<table cols="1" rows="1" border="0" cellspacing="0"
+				       cellpadding="0" width="100%"> 
+		  <tbody> 
+		    <tr> 
+		      <td> <div class="menuHead"> <a href="../index.shtml"
+			    class="menuItem"> Home /
+			    News</a></div></td>
+		    </tr> 
+		    <tr> 
+		      <td> <div class="menuHead"> <a href="../schedule.shtml"
+						   class="menuItem">Schedule</a> </div></td>
+		    </tr> 
+                    <tr>
+                       <td><div class="menuHead"><a href="https://6033.scripts.mit.edu:444/submit.cgi"
+                                                    class="menuItem">Submissions</a>
+                      </div></td>
+                      </tr>
+		    <tr> 
+		      <td>
+			  <hr>
+		      </td> 
+		    </tr> 
+		    <tr> 
+		      <td> <div class="menuHead"> <a href="../general.shtml"
+						   class="menuItem">General Information </a> </div></td>
+		    </tr> 
+		    <tr> 
+		      <td> <div class="menuHead"> <a href="../general.shtml#staff" class="menuItem">Staff List</a>
+		      </div></td> 
+		    </tr> 
+		    <tr> 
+		      <td> <div class="menuHead"> <a href="../sections.shtml" class="menuItem">Recitations</a>
+		      </div></td> 
+		    </tr> 
+		    <tr> 
+		      <td> <div class="menuHead"> <a href="../general.shtml#tas" class="menuItem">TA Office Hours</a>
+		      </div></td> 
+		    </tr> 
+		    <tr> 
+		      <td>
+			  <hr> 
+		      </td> 
+		    </tr> 
+		    <tr> 
+		      <td> <div class="menuHead"> <a href="http://www.piazza.com/mit/spring2012/6033" class="menuItem">Discussion / feedback</a>
+		      </div></td> 
+		    </tr> 
+		    <tr> 
+		      <td> <div class="menuHead"> <a href="../faq.shtml" class="menuItem">FAQ</a>
+		      </div></td> 
+		    </tr> 
+		    <tr> 
+		      <td> <div class="menuHead"> <a href="../errata.shtml " class="menuItem">Class Notes Errata</a>
+		      </div></td> 
+		    </tr> 
+		    <tr> 
+		      <td> <div class="menuHead"> <a href="../writing_examples.shtml" class="menuItem">Excellent Writing Examples</a>
+		      </div></td> 
+		    </tr> 
+		    <tr> 
+		      <td>
+			  <hr> 
+		      </td> 
+		    </tr> 
+		    <tr> 
+		      <td> <div class="menuHead"> <a href="http://mit.edu/6.033/2011/wwwdocs"
+						   class="menuItem">2011 Home</a><br> 
+		      </div></td> 
+		    </tr> 
+                    <tr>
+                      <td> <div class="menuHead">
+<a rel="license" href="http://creativecommons.org/licenses/by/3.0/us/"><img alt="Creative Commons License" style="border-width:0" src="http://i.creativecommons.org/l/by/3.0/us/88x31.png" /></a>
+<br>
+                      </div></td>
+                    </tr>
+		  </tbody> 
+	      </table></td> 
+	      <td width="3" bgcolor="#8a0a0a"> <br> </td> 
+	    </tr> 
+	  </tbody> 
+      </table></td> 
+      <!-- End Menu --> 
+      <td colspan="2"> <table border="0" cellspacing="0" cellpadding="0" width="100%" height="100%"> 
+	  <tbody> 
+	    
+	    <tr> 
+	      <td style="padding: 10px;" valign="top" align="left">
+
+
+
+<!-- ------------------ -->
+<!-- Begin Page Content --> 
+
+<p class="TitleHead">Preparation for Recitation 26</p> 
+
+<p> The final 6.033 recitation discusses Butler Lampson's classic
+    paper <a href =
+    "http://research.microsoft.com/lampson/33-Hints/WebPage.html">
+    <i>Hints for Computer System Design </i></a>. This paper presents
+    about two dozen general rules of thumb that experienced system
+    designers have found helpful in building functional,
+    fault-tolerant systems with acceptable performance. Some of
+    Lampson's rules may seem obvious to you. Don't be misled by their
+    apparent simplicity: they embody deep ideas, and it is all too
+    easy to forget them while in the throes of a project. (And even if
+    they are obvious, they are well worth collecting and repeating.)
+    </p>
+
+<p> Start out by reading the conclusion of the paper, and then follow
+    the advice in its first sentence: read the paper in small pieces,
+    over time, so that you can fully absorb its lessons. You will get
+    less from the paper if you read it all at once. </p>
+
+<p> You are likely to be unfamiliar with many of the systems discussed
+    in the examples. It is not necessary to understand every example,
+    but you should understand in detail at least one of the examples
+    for each hint. Then, for each hint you should think of at least
+    one example of a use (and perhaps also a misuse) of the hint from
+    one of the readings. In addition, think about your design
+    projects: how did you follow (or not) the hints? You might also
+    think about when the hints are not applicable, and how you can
+    tell when that is the case. Overall, the collection of hints
+    should help you to synthesize the lessons you have learned during
+    the semester. </p>
+
+<!--
+<p> If you have taken 6.170, you will notice that many of the hints
+    are similar to, or identical to, those presented in 6.170. This is
+    another example of the close relationship between 6.170 and 6.033.
+    6.033 and 6.170 are both about the construction of computer
+    systems (even though they choose different details for close
+    scrutiny), so the primary problems and techniques for avoiding
+    those problems are similar. </p>
+-->
+
+<!--  End Page Content  -->
+<!-- ------------------ -->
+
+
+
+</td></tr> 
+<tr bgcolor="#999999" height="20">
+<td style="padding-left: 10px; padding-top: 10px; padding-bottom: 10px;">
+
+<p><font style="font-size: 12px;">
+	Questions or comments regarding 6.033? Send e-mail to the 6.033 staff at <span class="email_autofill">6.033-staff at mit.edu</span> or to the 6.033 TAs at <span class="email_autofill">6.033-tas at mit.edu</span>.
+</font></p> 
+
+<p><font style="font-size: 12px;">
+<b><a href="#top">Top</a></b> // <b><a href="../index.shtml">6.033 home</a></b> //
+
+</font></p></td></tr></tbody></table></td></tr></tbody></table> 
+</body></html>

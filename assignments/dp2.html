@@ -1,0 +1,350 @@
+<html>
+<head>
+<title>6.033 2012 Design Project 2</title>
+</head>
+<body>
+
+<h2>
+6.033 2012 Design Project 2
+</h2>
+
+
+<h2> I. Due Dates and Deliverables </h2>
+
+You will be working on the second design project in teams of three
+students who share the same recitation instructor.  There are four
+deliverables for this design project:
+
+<ol>
+<li>A list of team members emailed to your TA by April 12, 2012.
+<li>One copy of a design proposal (not exceeding 1,200 words),
+    due at 5pm on April 26, 2012.
+<li>One copy of a design report (not exceeding 5,000 words),
+    due at 5pm on May 10, 2012.
+<li>A five-minute in-recitation presentation, on May 15, 2012.
+    In consultation with the chair of the faculty we have determined
+    that the assignment follows the spirit of the end-of-term rules.
+</ol>
+
+<p>
+All deliverables should be submitted via the online submission site.
+
+<p>
+As with real life system designs, 6.033 design projects are
+under-specified, and it is your job to complete the specification in
+a sensible way given the overall requirements of the project. As with
+designs in practice, the specifications often need some adjustment as
+the design is fleshed out. We recommend that you start early so that
+you can evolve your design over time. A good design is likely to take
+more than just a few days to put together.
+
+
+<h2> II. The Problem </h2>
+
+<p>
+Ben Bitdiddle is collaborating with several of his friends on a paper for
+a class (similar to the DP2 report that your team is putting together).
+He wants to build a peer-to-peer text editor in which he and his group
+members can edit the paper at the same time, without relying on a central
+server (such as in Google Docs).  Ben and his friends often use laptops
+without internet access, and they don't like relying on Athena, so they
+would like to come up with a design that allows disconnected operation
+and does not require a central server.  One particular scenario that Ben
+and his friends want to support is being able to sit together along the
+Charles River, without internet access, but still be able to collaborate
+on editing the same document when their laptops can communicate.
+
+<p>
+Ben expects many group members to make changes while offline.  It may
+be the case that two group members make conflicting changes to the
+same sentence, in which case the editor should ask the user for help
+in merging these changes.  However, in cases when the changes are not
+in conflict with one another, Ben would like the text editor to merge
+them automatically, without any manual input from the user.  Moreover,
+once a user resolves a conflict, other users should not need to resolve
+the same conflict again.
+
+<p>
+At some point Ben thinks that he has a final version of the paper ready
+for submission.  He wants to double-check that the paper he submits
+reflects everyone's latest changes.  To help all group members to agree on
+a single version of the document to submit, the text editor should allow
+Ben to commit a certain version of the document (for example, the one
+that Ben is going to submit on the group's behalf to the course staff).
+If there were some changes to the paper on a group member's computer,
+which Ben did not see before initiating his commit, Ben's commit should
+fail and Ben will have to merge those changes and initiate another commit.
+
+<p>
+Your job is to design a collaborative text editor that meets Ben's
+requirements.
+
+
+<h2> III.  Requirements </h2>
+
+<p>
+The challenges you should address in your design project are as follows:
+
+<ol>
+
+<li>
+Your design must support disconnected operation.  If two group members
+edit the same document, but make changes to different parts of the
+document, their changes should eventually be merged together when they
+re-connect to the Internet.  If they edit the same part of the document,
+the text editor should flag the conflicting parts of their changes,
+and ask the users to resolve this conflict.  A third member of the
+group should not have to resolve this conflict once it has already
+been resolved.
+
+<li>
+Your design must support direct connectivity between two users without
+Internet access, such as two group members being able to communicate
+over a direct link on an airplane or in a park.  The users should be
+able to synchronize with each other, and later be able to send their
+changes to a third user when they connect to the Internet.
+
+<li>
+Your design must support commit points.  A user should be able to
+initiate commit on a document with a given name, such as ``Ben's final
+submission''.  If the user's commit returns with success, all users
+must agree on the document that corresponds to that commit name, even
+if all machines crash after that point.  Additionally, the committed
+document must reflect the changes from each user at the time the commit
+was initiated.
+
+<li>
+Your design can assume that the membership of Ben's group does not change
+for the lifetime of the document (although not all group members may be
+online at any given time, or they may be in different network partitions).
+
+<li>
+Your design can assume that each user knows the current IP addresses of
+other group members' machines.
+
+</ol>
+
+<p>
+After you have designed your system, you should evaluate how usable
+your system is, in terms of how many conflicts have to be resolved when
+two users make concurrent changes to the document.  Your design should
+not ask users to resolve conflicts that don't matter in the current
+version of the document.  Your design should also not ask users to
+resolve conflicts that can be reasonably resolved automatically, by,
+for example, keeping more precise dependencies.
+
+<p>
+The scenarios your design must handle in terms of conflict resolution
+are as follows:
+
+<ol>
+
+<li>
+Two users, Alice and Bob, add lots of text to the document in different
+paragraphs, and also make different changes to a single sentence in the
+introduction.  Once Alice and Bob connect to each other, your design must
+not require resolving conflicts for the changes to different paragraphs.
+
+<li>
+Two users, Alice and Bob, are connected to each other, and Bob makes a
+change to a sentence.  Concurrently, an offline user, Charlie, changes
+that same sentence in a different way.  Alice goes offline but later
+meets Charlie, at which point they synchronize, detect the conflict,
+and Alice resolves the conflict.  At a later point, Charlie meets Bob
+and synchronizes with him.  Bob should not have to resolve a conflict
+between his change and Charlie's change, because Alice already resolved
+this conflict.
+
+<li>
+One user, Alice, moves several paragraphs from one section of the
+paper to another, but does not change the contents of those paragraphs.
+Concurrently, another user, Bob, who is offline, edits a sentence in one
+of those paragraphs.  When Alice and Bob meet, no conflict resolution
+should be required.
+
+<li>
+Two users, while not connected to each other, find a spelling mistake
+and correct the same word in the same way.  When they re-connect, no
+conflict resolution should be required.
+
+</ol>
+
+<p>
+Your design report must discuss how you handle failures during commit,
+where Ben's system crashes (when Ben initiated commit) at any point in
+the commit process, what happens if another student in the group has
+outstanding edits that Ben has not seen yet, and what happens if another
+student's computer crashes while Ben is in the middle of committing.
+Under any failures (including the ones mentioned here), once a user sees
+that some version was committed under a given name, no other version can
+ever be committed under that name.  If a user does not see that a version
+was committed, they must be able to either commit a new version <i>or</i>
+find out the version that <i>was</i> committed under that name.
+
+<p>
+Your design must correctly handle concurrent commits, when multiple users
+try to commit a version with the same name.
+
+<p>
+Your design must never silently drop changes, except if the computer of
+the user making the change crashes just after the user made that change,
+<i>and</i> that change has not been sent out to other users yet.
+
+<p>
+<b><i>Optional challenge problem:</i></b>
+
+<ul>
+<li>Handle dynamic group membership, where a group member can leave
+  the group, and one group member can add a new member.  This refers
+  to the set of people that can edit the document, and not to the
+  set of users that are online at some point in time.
+
+</ul>
+
+
+<h2> IV. Design proposal </h2>
+
+<p>
+The design proposal should summarize your design in 1,200 words or
+fewer.  It should outline the representation of a document stored
+at each node, and the protocol and algorithms the nodes use to
+exchange updates.
+
+<p>
+You do not have to present a detailed rationale or analysis in
+your proposal. However, if any of your design decisions are unusual
+(particularly creative, experimental, or risky) or if you deviate from
+the requirements, you should explain and justify those decisions in
+your proposal.
+
+<p>
+You will receive feedback from your TA in time to adjust your final
+report.
+
+
+<h2> V. Design report </h2>
+
+<p>
+Your report should explain your design. It should discuss the major
+design decisions and tradeoffs you made, and justify your choices.
+It should discuss any limitations of which you are aware. You should
+assume that your report is being read by someone who has read this
+assignment, but has not thought carefully about this particular
+design problem.  Give enough detail that your project can be turned
+over successfully to an implementation team.  Your report should
+convince the reader that your design satisfies the requirements
+in Section III.
+
+<p>
+Use this organization for your report:
+
+<ul> 
+ 
+<li>Title page: Give your report a title that reflects the
+subject and scope of your project. Include your names, email address,
+recitation instructor, section time(s), and the date on the title page.
+ 
+<li>No table of contents.
+ 
+<li>Introduction: Summarize what your design is intended to achieve,
+outline the design, explain the major trade-offs
+and design decisions you have made, and justify those trade-offs
+and decisions.
+ 
+<li>Design: Explain your design. Identify your design's main
+components, state, algorithms, and protocols. You should sub-divide
+the design, with corresponding subsections in the text, so that the
+reader can focus on and understand one piece at a time. Explain why
+your design makes sense as well as explaining how it works. Use
+diagrams, pseudo-code, and worked examples as appropriate.
+ 
+ 
+<li>Analysis: Explain how you expect your design to behave in different
+scenarios.  What scenarios might pose problems for performance
+or correctness?  What do you expect to be the
+scalability limits of your design?
+ 
+<li>Conclusion: Briefly summarize your design and provide
+recommendations for further actions and a list of any problems that must
+be resolved before the design can be implemented.
+ 
+<li>Acknowledgments and references: Give credit to individuals whom
+you consulted in developing your design. Provide a list of references
+at the end using the IEEE citation-sequence system ("IEEE style")
+described in the
+<a href="https://web.mit.edu/21.guide/www/toc.htm">Mayfield
+Handbook</a>.
+ 
+<li>Word count. Please indicate the word count of your report at the
+end of the document.
+ 
+</ul> 
+
+<p> 
+Here are a few tips:
+ 
+<ul> 
+ 
+<li>Use ideas and terms from the course notes when appropriate; this
+will save you space (you can refer the reader to the relevant section
+of the notes) and will save the reader some effort.
+ 
+<li>Before you explain the solution to any given problem,
+say what the problem is.  
+ 
+<li>Before presenting the details of any given design component,
+ensure that the purpose and requirements of that 
+component are well described.
+ 
+<li>It's often valuable to illustrate an idea using an example, but
+an example is no substitute for a full explanation of the idea.
+ 
+<li>You may want to separate the explanation of a component's
+data structures (or packet formats) from its algorithms.
+ 
+<li>Explain all figures, tables, and pseudo-code; explain what is
+being presented, and what conclusions the reader should draw.
+ 
+</ul> 
+ 
+<p> 
+While the Writing Program will not be grading DP2, you should feel
+free to ask them for help.
+
+
+<h2> VI. Presentation </h2>
+
+<p>
+You will have only about five minutes for your presentation. The audience
+will be very familiar with the problem, so you can get right to the guts
+of your solution.
+
+
+<h2> VII. How we evaluate your work </h2>
+
+Your recitation instructor will assign your report a grade that reflects
+both the design itself and how well your report presents the design. These
+are the main high-level grading criteria:
+
+<ul>
+<li><b>Clarity.</b>
+    Is the design described well enough to be understood, evaluated, and implemented?
+
+<li><b>Correctness.</b> Does the design achieve the requirements laid out in
+    Section III?  Does your report give a convincing analysis that your design
+    works under the described scenario?
+
+<li><b>Simplicity.</b>
+    Is the level of complexity in the design justified?
+</ul>
+
+
+<h2> VII. Clarifications </h2>
+
+<ul>
+<li>None yet.
+</ul>
+
+
+</body>
+</html>

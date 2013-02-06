@@ -1,0 +1,476 @@
+<html><head><!--DOC TYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN"-->
+<title>Hands-on Assignment (Databases)</title>
+<style type="text/css">
+.one { color: blue; }
+.two { color: #a00000; }
+</style>
+
+<body bgcolor="#ffffff" text="#000000">
+<a name="top">
+<h4>
+<em>
+<p align="center">
+M.I.T. DEPARTMENT OF EECS
+</p>
+</em>
+</h4>
+</a>
+<!-- RULE: h-header -->
+
+<!--
+
+  Setup notes:
+
+    [ http://www.postgresql.org/docs/9.1/static/auth-methods.html ]
+
+  echo "host all all 0.0.0.0/0 md5" >> /etc/postgresql/8.4/main/pg_hba.conf
+  echo "listen_addresses = '*'" >> /etc/postgresql/8.4/main/postgresql.conf
+  perl -pi -e 's,max_connections\s*=\s*\d+,max_connections=500,' /etc/postgresql/8.4/main/postgresql.conf
+  perl -pi -e 's,shared_buffers\s*=\s*\S+,shared_buffers=16MB,' /etc/postgresql/8.4/main/postgresql.conf
+  service postgresql restart
+
+  cat .../6.033/2012/internal/students/s*.txt > /tmp/db-users.txt
+  for u in $(cat /tmp/db-users.txt); do
+    p=$(head -c 512 /dev/urandom | sha1sum | cut -c1-8)
+    echo $u $p >> /tmp/db-passwords.txt
+    ( echo DROP DATABASE IF EXISTS $u\; ;
+      echo DROP USER IF EXISTS $u\; ;
+      echo CREATE USER $u WITH PASSWORD \'$p\'\; ;
+      echo ALTER USER $u SET DEFAULT_TRANSACTION_ISOLATION TO SERIALIZABLE\; ;
+      echo CREATE DATABASE $u\; ;
+      echo GRANT ALL PRIVILEGES ON DATABASE $u TO $u\; ) | su - postgres -c psql
+  done
+
+  cat /tmp/db-passwords.txt | while read user pass; do
+    D=/mit/6.033/2012/submit/data/"Hands-on 6 - Databases"/$user
+    mkdir -p "$D"
+    ( echo "Your database hands-on account information:";
+      echo "Username: $user";
+      echo "Password: $pass" ) > "$D"/response-kolya-0.txt
+  done
+
+ -->
+
+<table width="100%">
+<tbody><tr>
+<td align="left"><strong>6.033 - Computer System Engineering</strong>
+</td><td align="right"><strong>Database Hands-On Assignment</strong>
+</td></tr></tbody></table>
+<hr>
+
+<h1>
+Hands-on 8: Databases
+</h1>
+
+<p>
+This hands-on assignment will introduce you to databases and transactions.
+Many applications store data in a database similar to the one you will be
+using in this exercise.  For example, it is common for web applications
+to store data in an SQL database, such as MySQL or Postgres, and in this
+hands-on, we will be using Postgres in particular.  One of the benefits
+of using a database is that it can provide serializability and durability
+guarantees that an ordinary file system does not.
+
+<p>
+Once you are done with this hands-on assignment, submit your answers,
+along with the commands you ran and the output you got, using the <a
+href="https://6033.scripts.mit.edu:444/submit.cgi">online submission
+site</a> before 11:59p.
+
+<h2>Intro to databases</h2> 
+
+<p>
+For the purposes of this exercise, we have set up a Postgres database
+server on the machine <tt>ud0.csail.mit.edu</tt>.  We have created an
+account for every student registered for 6.033 this term; check the online
+submission web site for a short text file (under the database hands-on
+assignment) that contains your username and password.  Please use our
+Postgres server for this hands-on assignment, rather than some other
+Postgres server, since we made some changes to defaults on our server.
+In particular, we changed the default transaction isolation level for
+all user accounts to <tt>SERIALIZABLE</tt>.
+
+<p>
+You can access your database by running the following
+commands on a Linux-based Athena workstation or dialup.
+To find your assigned username and password, check the <a
+href="https://6033.scripts.mit.edu:444/submit.cgi">online submission
+site</a> for a comment under the database hands-on assignment.
+
+<blockquote><pre>
+athena% <b>psql -h ud0.csail.mit.edu -U <i>username</i></b>
+Password for user username: <b><i>password</i></b>
+psql (8.4.10)
+SSL connection (cipher: DHE-RSA-AES256-SHA, bits: 256)
+Type "help" for help.
+
+username=&gt; 
+</pre></blockquote>
+
+<p>
+The <tt>psql</tt> command allows you to issue SQL queries to the database.
+To exit from this shell, type <tt>\q</tt>.
+
+<p>
+SQL databases allow users (such as application developers) to organize
+data in <i>tables</i>.  Each table consists of record called <i>rows</i>.
+Each row, in turn, consists of several attributes called <i>columns</i>.
+All rows in the table share the same set of columns, and these columns
+must be defined ahead of time by the user when the table is created.
+
+<p>
+As an example, MIT's TechCash system, which handles payments using MIT ID
+cards, might construct a table that stores information about accounts,
+such as the account holder's Athena username, their full name, and the
+total amount of money in their account.  You can visualize the table as
+containing the following information, with 4 rows and 3 columns:
+
+<p>
+<blockquote>
+<table border=1>
+<tr><th>username</th>
+    <th>fullname</th>
+    <th>balance</th></tr>
+<tr><td>jones</td>
+    <td>Alice Jones</td>
+    <td>82</td></tr>
+<tr><td>bitdiddl</td>
+    <td>Ben Bitdiddle</td>
+    <td>65</td></tr>
+<tr><td>mike</td>
+    <td>Michael Dole</td>
+    <td>73</td></tr>
+<tr><td>alyssa</td>
+    <td>Alyssa P. Hacker</td>
+    <td>79</td></tr>
+</table>
+</blockquote>
+
+<p>
+In this hands-on, you will use the SQL language to issue queries to
+the database to perform operations on tables.  Postgres has a good <a
+href="http://www.postgresql.org/docs/8.4/static/tutorial-sql.html">tutorial
+on SQL</a>, as well as a more detailed <a
+href="http://www.postgresql.org/docs/8.4/static/sql.html">SQL language
+manual</a> that you can refer to.
+
+<h2>Using SQL</h2>
+
+<p>
+<b>Exercise 1.</b>
+
+As a first step, use the SQL <tt>CREATE</tt> command to create the table shown above,
+and then execute several <tt>INSERT</tt> commands to insert each of the rows
+into the resulting table, as follows:
+
+<p>
+<blockquote><pre>
+username=&gt; <b>create table accounts (username varchar(8), fullname varchar(128), balance int);</b>
+CREATE TABLE
+username=&gt; <b>insert into accounts values ('jones', 'Alice Jones', 82);</b>
+INSERT 0 1
+...
+</pre></blockquote>
+
+<p>
+If you make a mistake, you can delete the <tt>accounts</tt> table by
+issuing a <tt>DROP TABLE accounts;</tt> command, and then starting over.
+
+<p>
+<b>Exercise 2.</b>
+
+Now, examine the table using the special <tt>\d</tt> command:
+
+<p>
+<blockquote><pre>
+username=&gt; <b>\d accounts</b>
+            Table "public.accounts"
+  Column  |          Type          | Modifiers 
+----------+------------------------+-----------
+ username | character varying(8)   | 
+ fullname | character varying(128) | 
+ balance  | integer                | 
+
+username=&gt; 
+</pre></blockquote>
+
+<p>
+We can now read data from the table using the <tt>SELECT</tt> command.
+The <tt>SELECT</tt> command allows you to choose which rows to select
+(by specifying a predicate in a <tt>WHERE</tt> clause), and what data
+to return from each row (e.g., individual columns or aggregates such
+as <tt>SUM()</tt>):
+
+<p>
+<blockquote><pre>
+username=&gt; <b>select username, fullname, balance from accounts;</b>
+...
+username=&gt; <b>select fullname from accounts where balance > 75;</b>
+...
+username=&gt; <b>select sum(balance) from accounts;</b>
+...
+username=&gt; 
+</pre></blockquote>
+
+<p>
+<b>Exercise 3.</b>
+
+Run the above three commands.  Also construct and run a command to
+display the full name of the person with username <tt>bitdiddl</tt>.
+Also construct and run a command to display the average account balance
+of people that have at least $70 in their account.  You may want to
+refer to the <a
+href="http://www.postgresql.org/docs/8.4/static/sql.html">Postgres SQL
+manual</a> to find a suitable function for computing the average.
+
+<p>
+<b>Exercise 4.</b>
+
+Transfer $10 from <tt>jones</tt> to <tt>mike</tt>.  You will
+find the <tt>UPDATE</tt> command useful; consult the <a
+href="http://www.postgresql.org/docs/8.4/static/sql.html">Postgres SQL
+manual</a> for more details.  For this exercise, it will suffice to
+perform two updates: one to deduct $10 from Alice's balance, and another
+to add $10 to Michael's balance.
+
+<h2>Transactions</h2>
+
+<p>
+To deal with concurrent operations, many SQL databases, including
+Postgres, support transactions, which allow several SQL statements to
+execute atomically (often meaning both <i>before-or-after atomicity</i>
+and <i>all-or-nothing atomicity</i>).  To execute statements as a single
+transaction, SQL clients first issue a <tt>BEGIN</tt> command, then
+execute some SQL commands, and finally issue either a <tt>COMMIT</tt>
+command, which makes the transaction's changes permanent, or a
+<tt>ROLLBACK</tt> command, which reverts the changes from all of the
+commands in the transaction.
+
+<p>
+In this assignment, you will simulate concurrent database queries
+by issuing SQL statements over two different connections to the
+database.  Open up two terminals, and run <tt>psql</tt> in each
+of them, to create two connections to the database.  We will use
+two colors (<span class="one">blue</span> and
+<span class="two">red</span>) to indicate the two
+database sessions.
+
+<p>
+Start a transaction in the first (blue) terminal, and display a list
+of all accounts:
+
+<blockquote><pre class="one">
+username=&gt; <b>begin;</b>
+BEGIN
+username=&gt; <b>select * from accounts;</b>
+ username |     fullname     | balance 
+----------+------------------+---------
+ bitdiddl | Ben Bitdiddle    |      65
+ alyssa   | Alyssa P. Hacker |      79
+ jones    | Alice Jones      |      72
+ mike     | Michael Dole     |      83
+(4 rows)
+
+username=&gt; 
+</pre></blockquote>
+
+<p>
+Now, in the second (red) terminal, also start a transaction and
+add an account for Chuck:
+
+<blockquote><pre class="two">
+username=&gt; <b>begin;</b>
+BEGIN
+username=&gt; <b>insert into accounts values ('chuck', 'Charles Robinson', 55);</b>
+INSERT 0 1
+username=&gt; 
+</pre></blockquote>
+
+<p>
+<b>Exercise 5.</b>
+
+Generate a list of all accounts in the first (blue) terminal, and in the second
+(red) terminal.  What output do you get?  Are they the same or not?  Why?
+
+<p>
+Now, commit the transaction in the second (red) terminal, by issuing the
+<tt>COMMIT</tt> statement:
+
+<blockquote><pre class="two">
+username=&gt; <b>commit;</b>
+COMMIT
+username=&gt; 
+</pre></blockquote>
+
+<p>
+<b>Exercise 6.</b>
+
+Generate a list of all accounts from the first (blue) terminal again.  Does
+it include Chuck?  Why or why not?
+
+<p>
+<b>Exercise 7.</b>
+
+Commit the transaction in the first (blue) terminal, start a new transaction,
+and generate a list of all accounts in the new transaction:
+
+<blockquote><pre class="one">
+username=&gt; <b>commit;</b>
+COMMIT
+username=&gt; <b>begin;</b>
+BEGIN
+username=&gt; <b>select * from accounts;</b>
+...
+</pre></blockquote>
+
+What output do you get?  Is it different than the output you received in
+exercise 6?  Why or why not?
+
+<p>
+Now, let's try to modify the same account from two different transactions.
+In the first (blue) terminal, start a transaction and deposit $5 into Mike's
+account:
+
+<p>
+<blockquote><pre class="one">
+username=&gt; <b>begin;</b>
+BEGIN
+username=&gt; <b>update accounts set balance=balance+5 where username='mike';</b>
+UPDATE 1
+</pre></blockquote>
+
+<p>
+In the second (red) terminal, start a transaction and withdraw $10 from
+Mike's account:
+
+<p>
+<blockquote><pre class="two">
+username=&gt; <b>begin;</b>
+BEGIN
+username=&gt; <b>update accounts set balance=balance-10 where username='mike';</b>
+UPDATE 1
+</pre></blockquote>
+
+<p>
+<b>Exercise 8.</b>
+
+What happens to the second update?  Why?
+
+<p>
+Let's try aborting a transaction: enter the <tt>ABORT</tt> command in the first
+(blue) terminal, undoing the $5 deposit:
+
+<p>
+<blockquote><pre class="one">
+username=&gt; <b>abort;</b>
+ROLLBACK
+username=&gt; 
+</pre></blockquote>
+
+<p>
+<b>Exercise 9.</b>
+
+What happens to the second (red) terminal's transaction?
+
+<p>
+<b>Exercise 10.</b>
+
+If you now commit the transaction in the second terminal, what is the
+resulting balance in Mike's account?
+
+<p>
+Now let's perform an atomic transfer of $15 from Ben to Alyssa, using two
+<tt>UPDATE</tt> statements in a single transaction.  In the first (blue)
+terminal, list the balances of all accounts.  Then start a transaction
+and do a part of a transfer in the second (red) terminal:
+
+<p>
+<blockquote><pre class="two">
+username=&gt; <b>begin;</b>
+BEGIN
+username=&gt; <b>update accounts set balance=balance-15 where username='bitdiddl';</b>
+UPDATE 1
+username=&gt; 
+</pre></blockquote>
+
+<p>
+<b>Exercise 11.</b>
+
+If you now look at the list of all account balances in the first (blue)
+terminal, have the results changed compared to before you started the
+transaction in the second (red) terminal?
+
+<p>
+<b>Exercise 12.</b>
+
+Finish the transfer by executing the following commands in the second
+(red) terminal.  After each command, list all of the account balances
+in the first (blue) terminal, to see at what point the effects of the
+second terminal's transaction become visible.  What is that point, and
+why?
+
+<p>
+<blockquote><pre class="two">
+username=&gt; <b>update accounts set balance=balance+15 where username='alyssa';</b>
+UPDATE 1
+username=&gt; <b>commit;</b>
+COMMIT
+username=&gt; 
+</pre></blockquote>
+
+<h2>Transaction isolation levels</h2>
+
+<p>
+Postgres supports different transaction isolation levels.  So far, you
+have been using <tt>SERIALIZABLE</tt> transactions, meaning that the
+transactions appear to execute in some serial order.  Postgres also has
+a <tt>READ COMMITTED</tt> isolation level, which allows one transaction
+to immediately see the results of any other committed transaction; you
+can read more about it in the Postgres manual
+<a href="http://www.postgresql.org/docs/8.4/static/transaction-iso.html">here</a>.
+
+<p>
+<b>Exercise 13.</b>
+
+By default, Postgres uses the <tt>READ COMMITTED</tt> isolation level
+(and for all of the above exercises, we explicitly configured our Postgres
+server to use the <tt>SERIALIZABLE</tt> isolation level instead).  Why do
+you think Postgres developers chose to make the default isolation level
+<tt>READ COMMITTED</tt>, which allows non-serializable schedules?
+
+<p>
+<b>Challenge exercise 14 (optional).</b>
+
+Come up with two transactions that, when run concurrently (with some
+interleaving of commands that you get to determine) produce a non-serializable
+schedule.  That is, the result that you obtain should be impossible to produce
+with <tt>SERIALIZABLE</tt> isolation, but is possible with <tt>READ COMMITTED</tt>.
+
+<p>
+To set the transaction isolation level to <tt>READ COMMITTED</tt>,
+you can issue the following command:
+
+<p>
+<blockquote><pre>
+username=&gt; <b>set session characteristics as transaction isolation level read committed;</b>
+SET
+username=&gt; 
+</pre></blockquote>
+
+<p>
+Keep in mind that the effects of this command last for the duration of a
+single session.  This means you have to issue it every time you re-start
+<tt>psql</tt>, and issue it in <i>every</i> session of <tt>psql</tt>
+that you start, to get <tt>READ COMMITTED</tt> isolation between your
+transactions.
+
+<hr>
+
+<table width="100%">
+
+<tbody><tr>
+<td align="left"><b>Go to <a href="http://web.mit.edu/6.033/">6.033 Home Page</a></b>
+</td><td align="right">&nbsp;</td>
+</tr></tbody></table>
+
+</body></html>

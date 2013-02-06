@@ -1,0 +1,277 @@
+Client-server in one computer
+=============================
+
+Topics covered in this lecture:
+  Bounded buffer.
+  Locks.
+
+Recall from last time: isolating programs using page tables.
+  How to allow two programs to interact with one another?
+  Suppose we have an X server and an X client.
+  Client needs to send request to server (e.g., draw an image).
+  How can we do this while still enforcing client/server modularity?
+
+Idea: let the kernel manage interaction.
+  Kernel provides a new abstraction for safe interaction between programs.
+  Client and server interact with the kernel, not each other.
+  Abstraction: sending messages (just what we need for c/s from lecture 3).
+  Diagram: X client & X server in user-space, kernel below.
+    X client & X server send and receive messages via kernel.
+    Never interact directly (isolated using virtual memory).
+  For now, focus on one-way message passing.
+  Can use the same mechanism both ways to get RPC for client/server.
+
+## Aside: the kernel doesn't strictly have to pass messages.  A different
+## design would be to arrange the page tables of two processes to share
+## one common page of memory.  The two processes can then implement message
+## passing via this shared page, as we will describe below.
+
+Kernel-provided abstraction: buffer storing several messages.
+  API (system calls):
+    send(m): adds m to the buffer.
+    m <- receive(): reads message from the buffer.
+  If there are no messages, receive may need to wait.
+  Buffer is finite, so send may also need to wait for some free space.
+  Looks a lot like the pipe in Unix (tomorrow's recitation).
+  Why do we need more than 1 entry?
+    Help deal with bursty senders and receivers.
+    When sender is faster, can accumulate backlog without waiting for receiver.
+    When sender is slower, receiver can catch up without waiting for sender.
+    Will talk more about this next week in the performance lecture.
+
+Problem: concurrency.
+  Suppose we have two CPUs, shared memory, one program per CPU.  (Diagram.)
+  When program invokes a system call, kernel runs code on the program's CPU.
+  send() and receive() functions in kernel interact via shared memory.
+  Diagram: buffer data structure lives somewhere in shared memory,
+    accessed by kernel code from both of the two CPUs.
+  Both send() and receive() access / modify this data structure.
+  What happens if send() and receive() execute at the same time?
+    Could potentially interfere with each other.
+    Need to design them so they don't misbehave!
+  Concurrency is a significant, recurring problem in computer systems.
+
+Data structure:
+  Bounded buffer:
+    buf[5]: stores 5 messages
+    in: number messages that have been put into this buffer
+    out: number of messages that have been taken from this buffer
+  How to send and receive messages?
+    (in mod 5) is the next place that send() should write.
+    (out mod 5) is the next place where receive() should read.
+    Example: in=28, out=26 => two messages waiting, slots 1 and 2.
+  When can we send or receive?
+    in-out<5: can send.
+    in>out (or in!=out, since in>=out always): can receive.
+
+[ slide: send() ]
+  bb is a pointer to instance of bounded buffer, so we can have many of them.
+    E.g., one per c/s pair, or one per Unix pipe.
+  Loop waits for space to send ("busy-wait").
+  Write message to slot.
+  Increment in.
+
+[ slide: receive() ]
+  Loop waits for a message to become available.
+  Copy message from slot.
+  Increment out.
+
+Does this work if a send() and a receive() run concurrently on two CPUs?
+  Yes, but this is very unusual -- concurrency is rarely so simple!
+  Important: send() & receive() must first access buffer, then increment in/out.
+    As soon as one increments, other can assume the buffer location is ready!
+    E.g., send increments: receive can take message from buffer.
+    E.g., receive increments: send can put new message into that slot.
+
+Limitations of this simple concurrent bounded buffer:
+  1. Only one sender and one receiver.
+  2. Each sender and receiver has its own CPU.
+     Otherwise, busy-wait loop will prevent anyone else from running.
+  3. CPUs perform memory reads and writes in the order shown.
+     Compilers and processors can re-order or cache memory accesses!
+
+How to fix these limitations?
+  1. Rest of today's lecture.
+  2. Wednesday's lecture.
+  3. Tell the compiler not to make any assumptions ("volatile" in C), and
+     tell CPU not to re-order memory accesses ("mfence" instruction in x86).
+
+Multiple senders.
+  E.g., multiple X clients sending messages to an X server.
+    A: send(bb, m1)
+    B: send(bb, m2)
+  Need to define what we want to happen: what's useful to the application?
+  Reasonable desired outcome:
+    buf contains m1 and m2
+    in = 2
+    don't care about order of m1 and m2
+
+What happens if two CPUs (A and B) both run send at the same time?
+       A: send(m1)           B: send(m2)
+    read in (0), out (0)
+                          read in (0), out (0)
+    write m1 to buf[0]
+                          write m2 to buf[0]
+    read in (0)
+                          read in (0)
+    write 1 to in
+                          write 1 to in
+
+  Outcome: in=1, buf[0]=m2, m1 was lost.
+  This bug is called a "race".
+    Once A starts, it has to hurry to finish incrementing in.
+  Other races in this code:
+    If there's only one slot left, A & B can both think there's space
+      => can overwrite oldest entry.
+
+Races are a serious problem:
+  Easy to make mistake: code on the slide looks perfectly reasonable.
+  Hard to find: depends on timing, may arise infrequently.
+    E.g., Therac-25 bug, only experienced operator typed fast enough.
+
+Why did send() and receive() work in the simple case?
+  Only one CPU was calling send => only one CPU is manipulating bb.in.
+  Let's restore this property even if we have multiple senders..
+
+Lock: data structure with two operations.
+  API:
+    acquire(l)
+    release(l)
+  Lock state: either locked or unlocked.
+  acquire() changes l to locked.
+  release() changes l to unlocked.
+  If l is locked, acquire() will wait until it's unlocked.
+  If two CPUs try to acquire() same lock, one will succeed, other will wait.
+
+[ slide: fixing send() with locks ]
+  One lock for each bb.
+  Acquire before accessing bb.
+  Release after done with the bb.
+  Now, lock guarantees only one send() will execute at a time.
+  If original code was correct with one send(), this should be correct too.
+
+Note: a lock is not inherently tied to any code or data.
+  Up to programmer to use the lock correctly!
+
+[ slide: different locking plan for send() ]
+  What happens if we acquire after the if statement?
+
+[ demo: lockdemo ]
+  Two side-by-side terminals, 'urxvt -fn xft:Monospace-14 +sb'
+  vi lockdemo.c on the left, initially with acquire/release.
+  shell on the right.
+
+  Q: what will array[] hold?
+  A: make lockdemo && ./lockdemo
+     various correct answers, depends on interleaving.
+
+  Q: what will array[] hold if we don't have locks?
+  A: comment out acquire() and release().
+     make lockdemo && ./lockdemo
+     sometimes correct output: races are often hard to reproduce in practice!
+     too few elements: both wrote same array[n], both set n to new value.
+     zero elements: both wrote same array[n], then increment in order.
+
+  Q: what will array[] hold if we put locks around each statement in append()?
+  A: put acquire() and release() around each of the two statements.
+     make lockdemo && ./lockdemo
+     always the right number of elements (increments happen in order).
+     sometimes zero slots when both write to the same array[n].
+
+Why is locking each line of code not enough?
+  Refer back to the instruction sequences for two concurrent send()s.
+  Lock around sequences of instructions provides before-or-after atomicity.
+    Will execute one group before _or_ after another group, _not_ concurrently.
+    Grouping increment's instructions ensures increment happens correctly.
+    Not enough to ensure send() will use the correct slot in bb.
+  How big should an atomic action big?  When is it big enough?
+    Often helpful to think of locks as protecting invariants.
+    Invariant for bb: refer back to data structure definition.
+    Can release lock when invariant holds: other CPUs can see state.
+    Not OK to release lock when invariant is broken -- must fix it up first!
+      E.g., in the middle of send(), already put msg, but haven't updated in.
+      Lock prevents other CPUs from seeing an inconsistent state.
+
+More complex example: file system.
+  [ slide: file system without concurrency ]
+  How do we make it safe for multiple CPUs to call move()?
+
+Locking design #1: one lock ("coarse-grained" locking).
+  [ slide: coarse-grained locking ]
+  +: Likely correct, just like on a single CPU.
+  -: No concurrency inside FS, even if accessing different directories.
+     Can lead to low performance on many CPUs.
+
+Locking design #2: per-directory locks ("fine-grained" locking).
+  [ slide: fine-grained locking ]
+  +: More concurrency, can lead to higher performance.
+  -: Hard to get correct!  Best to start coarse-grained, refine as needed.
+
+  Problem: in the middle of move(), file doesn't appear in either directory.
+    [ slide: file not in dir1 or dir2 ]
+  Invariant involves both dir1 and dir2, so need link+unlink to be atomic.
+
+Locking design #3: holding both locks together.
+  [ slide: holding two locks ]
+  +: Solves the atomicity problem.
+  -: Deadlock.
+  [ slide: deadlock ]
+
+Locking design #4: solving deadlock.
+  Plan: look for all places where multiple locks are held.
+  Ensure that in each case, locks are acquired in the same order.
+  No locking cycles => no deadlock.
+  [ slide: solving deadlock ]
+  +: Finally might work.
+  -: Painful, because it requires global reasoning about all locks.
+     E.g., can you call printf()?  Does it acquire some lock?
+  Good news: deadlocks are not subtle once they occur!
+    Program stops exactly at the place where deadlock occurred.
+
+## For next year: look at how complex deadlock avoidance is in real systems:
+##   linux/fs/dcache.c (comment on top about lock ordering)
+##   linux/fs/inode.c (comment on top about lock ordering)
+
+How to implement acquire() and release()?
+  acquire(l):     ## strawman design
+    while l != 0:
+      do nothing
+    l <- 1
+
+  release(l):
+    l <- 0
+
+  Race condition similar to send(), with two CPUs:
+    Both CPUs run acquire(l).
+    Both see l==0.
+    Both set l<-1.
+    Both start executing code after the acquire().
+  Checking l!=0 and setting l=1 should be atomic!
+    Chicken-and-egg problem?
+
+Hardware support: atomic instruction that combines both operations!
+  Luckily, most processors provide a solution.
+  E.g. (each CPU has its own variants):
+    RSM reg, addr   ## read-and-set-memory
+      reg <- Mem[addr]
+      Mem[addr] <- 1
+  If RSM is atomic, we can implement acquire.
+
+  acquire(l):
+    do:
+      RSM r, l
+    while r==1
+
+How does hardware make RSM atomic?
+  Simple architecture: there's a shared bus between CPUs for accessing memory.
+  Only one bus => only one CPU can use it at a time.
+  There's an arbiter that decides who gets the bus if multiple CPUs want it.
+    E.g., round-robin policy determines which CPU wins.
+  RSM grabs the bus, does its two operations, and releases the bus: atomic!
+
+## Aside: in the case of two CPUs, hardware support is not strictly necessary.
+## Check out Dekker's algorithm (e.g., Wikipedia).  But in practice it's too
+## slow and too limited.
+
+[ slide: summary ]
+

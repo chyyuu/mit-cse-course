@@ -1,0 +1,82 @@
+#  -*- mode: org -*-
+#+STARTUP: indent
+ 
+Demo: wireshark trace of ttcp traffic from home to amsterdam
+
+* TCP: reliable pipe to send bytes
+** Few mechansims:
+ TCP adopts to link capacity, rate at which server processes packets, congestion:
+    all with one mechanism:  the pacing of acks
+ TCP handles packet loss too using acks
+
+** Semantics
+3 hand-shake to set up connection (defined by src,dst ip and src, dst tcp)
+server and client keep state per connection for detecting duplicate,
+retransmission etc.
+   
+TCP doesn't guarantee at-most-once delivery, but in most cases it will.  By
+default connections hang-around for 2 min after termination, and clients pick a
+random port, so it is unlikely that packets from an old connection are accepted
+as new packets.
+
+* Some observation about trace:
+
+** connection setup: 3 packets, agree on sequence numbers, etc.
+
+** connection starts with slow start: 1 outstanding, 2, 4, etc.
+- slow start: increase the congestion window by number of packets acknowledged
+  first ack increase window 2
+  second ack increases window 4
+  etc. until something happens (see below)
+- first ack comes back roughly in ~112 msec (what is the cable modem doing!?)
+  luckily we won't be sending 1448 data bytes per 112 msec (which is ~12Kbyte/s)
+- after first ack sender sends 2 packets, receive ack for next packet (4345)
+  acknowledging 2 packets.
+  ack received after ~16 msec (~181 Kbyte/s)
+- send 4 packets
+  we get ack for first packet
+- mix of burst of packets, followed by receiving acks, window grows
+  e.g. ack for 14481 acknowledges packet send 803180-786613 usec earlier = ~16 msec
+  at this point we have 27513-14481 bytes in flight = 13032 
+  so if were stable now, we would be sending at 814Kbyte/s
+
+** TSval to compute RTT
+   
+** when sending byte 127425 connection reaches server capacity, maybe we could send faster. 
+-  we can compute the rate at which we are sending:
+    byte 65161 was sent at time 66834969
+    it was acked at time 66916306
+    at that time: sender sends byte 125977
+    so the bytes in flight are: 125977-65161
+    and we are clocking at: 66834969-66916306 = -81337 (81 msec)
+    tcp is running at: 60816/0.081337 = 747703.99695095712898189016 bytes/sec
+    which make sense for uploading on a cable modem
+
+** moved away from base station around event 9747
+   duplicate acks:  so data got lost
+   several dup acks so don't wait for timeout resend: 7031633
+   4 dup acks, again resend 7031633
+   next acks says receiver send it, and retransmits two outstanding packets
+   my wifi link is bad so many dropped packets (i am far away from base station)
+   tcp retransmits and doesn't give up (client does receive some responses)
+   
+** at event 9940, i am closer to my base station
+   TCP is back at self-clocking itself, without drops
+
+* Second trace: multiple TCP connections from home to am:
+** First start one connection, and let it come up to speed
+** At event 7143, 2 more connections
+they enter slow start, reach full speed of server (tcp window is full)
+** At event 9111, the combined connections are creating congestion, packet loss
+many of the connection experience packet loss
+connections back off aggressively:
+e.g., 10672, window is 406889-367793 = 39096
+e.g., 10639, window is 363449-325901 = 37548  (next ack 12 msec later, so ~37548/0.012=312Kb/s)
+** They slowly speed up again
+at 14712, packet loss again
+at 1572, window is: 961473-931065
+** and so on
+
+
+
+

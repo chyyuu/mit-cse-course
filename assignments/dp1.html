@@ -1,0 +1,498 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html>
+<head>
+<meta name="generator" content=
+"HTML Tidy for Mac OS X (vers 31 October 2006 - Apple Inc. build 15.6), see www.w3.org">
+
+<title>dp1.html</title>
+<style type="text/css">
+  ol{margin:0;padding:0}.c7{vertical-align:top;width:234pt;border-style:solid;border-color:#000000;border-width:1pt;padding:5pt 5pt 5pt 5pt} li:first-child {padding-top:5pt;} li{padding:1.5pt 0;} .c6{max-width:468pt;background-color:#ffffff;padding:72pt 72pt 72pt 72pt}.c4{list-style-type:decimal;margin:0;padding:0}.c05{list-style-position:inside;;margin-left:30pt}.c1{list-style-position:inside;text-indent:45pt;margin-left:30pt}.c9{list-style-type:disc;margin:0;padding:0}.c13{color:inherit;text-decoration:inherit}.c5{color:#0000ee;text-decoration:underline}.c11{font-weight:bold}.c12{border-collapse:collapse}.c15{margin-left:30pt}.c3{padding-bottom:11.2pt}.c0{direction:ltr}.c8{padding-top:0pt}.c10{font-style:italic}.c2{padding-bottom:12pt}.c14{height:11pt}.title{padding-top:24pt;line-height:1.0;text-align:left;color:#000000;font-size:36pt;font-family:"Arial";font-weight:bold;padding-bottom:6pt}.subtitle{padding-top:18pt;line-height:1.0;text-align:left;color:#666666;font-style:italic;font-size:24pt;font-family:"Georgia";padding-bottom:4pt}li{color:#000000;font-size:11pt;font-family:"Arial"}p{color:#000000;font-size:11pt;margin:0;font-family:"Arial"}h1{padding-top:12pt;line-height:1.0;text-align:left;color:#000000;font-size:24pt;font-family:"Arial";font-weight:bold;padding-bottom:12pt}h2{padding-top:11.2pt;line-height:1.0;text-align:left;color:#000000;font-size:18pt;font-family:"Arial";font-weight:bold;padding-bottom:11.2pt}h3{padding-top:12pt;line-height:1.0;text-align:left;color:#000000;font-size:14pt;font-family:"Arial";font-weight:bold;padding-bottom:12pt}h4{padding-top:12.8pt;line-height:1.0;text-align:left;color:#000000;font-size:12pt;font-family:"Arial";font-weight:bold;padding-bottom:12.8pt}h5{padding-top:12.8pt;line-height:1.0;text-align:left;color:#000000;font-size:9pt;font-family:"Arial";font-weight:bold;padding-bottom:12.8pt}h6{padding-top:18pt;line-height:1.0;text-align:left;color:#000000;font-size:8pt;font-family:"Arial";font-weight:bold;padding-bottom:18pt}
+</style>
+</head>
+
+<body class="c6">
+<h2 class="c0"><span>6.033 2013 Design Project 1: A versioning
+file system</span></h2>
+
+<h2 class="c0 c8"><span>I. Due Dates and Deliverables</span></h2>
+
+<p class="c0"><span>There are three deliverables for Design
+Project 1:</span></p>
+
+<ol start="1">
+
+  <li class="c05"><span>A design memo, due on Feb 15, 2013 (before
+  tutorial).</span></li>
+
+  <li class="c05"><span>A design proposal not exceeding 800
+  words, due on March 1, 2013 at 5pm.</span></li>
+
+  <li class="c05"><span>A design report not exceeding 2,500
+  words, due on March 22, 2013 at 5pm.</span></li>
+
+</ol>
+
+<br />
+
+<p class="c0"><span>All deliverables should be submitted via the
+online submission site.</span></p>
+
+<br />
+
+<p class="c3 c0"><span>As with real-life system designs, 6.033
+design projects are under-specified, and it is your job to
+complete the specification in a sensible way given the overall
+requirements of the project. As with designs in practice, the
+specifications often need some adjustment as the design is
+fleshed out. We recommend that you start early so that you can
+evolve your design over time. A good design is likely to take
+more than just a few days to put together.</span></p>
+
+<h2 class="c0 c8"><span>II. The Problem</span></h2>
+
+<p class="c0"><span>Your goal is to design a versioning file
+system. Many popular operating systems have a</span> <span class=
+"c5"><a class="c13" href=
+"http://en.wikipedia.org/wiki/Versioning_file_system">versioning
+file system</a></span><span>&nbsp;(sometimes called continuous
+snapshotting file systems), which stores all versions of each
+file over time. These designs are complex because they handle a
+wide range of failures. Your task is simpler: design a versioning
+file system that assumes no failures. That is, you can assume
+that the file system will always terminate cleanly, even in the
+case of unexpected failures. For instance, if a power failure
+shut down the computer, assume that the file system will get a
+chance to write its state to stable storage cleanly. This allows
+you to design a much simpler file system than commercial ones.
+(After the break, we will study designs that can handle
+failures.)</span></p>
+
+<br />
+
+<p class="c0"><span>When a program writes a new version of a
+file, your design should keep track of the</span> <span>old and
+new</span> <span>versions of the file. That is, a user should be
+able to see the old version in the file system namespace, and
+read it (but not write it). Your main challenge will be to do this in a
+storage-efficient manner: if, for example, a program changes one
+block of the file, then your design should use disk space
+proportional to 1 copy of the file plus one additional disk
+block.</span></p>
+
+<br />
+
+<p class="c0"><span>Your design should support the standard Unix
+file system operations (read, write, open/create, rename, link,
+unlink, symlink, mkdir, chdir and stat). Your design can also be
+slower in performance than a non-versioning file system, but it
+should not be unusably slow. Your design should allow the user to
+specify files and directories that shouldn't be versioned.
+Finally, your design should be able to support garbage collection
+of older versions of a file.</span></p>
+
+<br />
+
+<p class="c3 c0"><span>Your design paper should clearly describe
+your design and the</span> <span class=
+"c10">on-disk</span><span>&nbsp;and</span> <span class=
+"c10">in-memory</span><span>&nbsp;data structures for
+snapshotting, and how they are used to</span> <span>support the
+required operations.</span></p>
+
+<h2 class="c0 c8"><span>III. Requirements</span></h2>
+
+<p class="c0"><span>Your system must support the following use
+cases:</span></p>
+
+<ol class="c9" start="1">
+  <li class="c05"><span>Writing a few blocks of a large
+  file</span></li>
+
+  <li class="c05"><span>Appending to a log file</span></li>
+
+  <li class="c05"><span>Creating a new file in a large
+  directory</span></li>
+
+  <li class="c05"><span>Finding some string across all versions of
+  a file</span></li>
+
+  <li class="c05"><span>Finding some string across all versions in
+  a file system</span></li>
+
+  <li class="c05"><span>Allowing users to exclude large files
+  that change often from versioning (e.g., virtual machine image
+  or a database file)</span></li>
+
+  <li class="c05"><span>Allowing users to exclude specific
+  directories from versioning (e.g, "/tmp").</span></li>
+</ol>
+
+<p class="c0 c14 c15"></p>
+
+<p class="c0"><span>In supporting these use cases here are a
+few general issues to think about:</span></p>
+
+<ol class="c9" start="1">
+  <li class="c05"><span>How do you represent files on disk? If
+  an application changes one block of a large file, the new
+  version should require some small constant number of additional
+  disk blocks (e.g., 1).</span></li>
+
+  <li class="c05"><span>What is the policy for when to create a
+  new version? When an application closes a file? When an application execute 
+  a write system call?</span></li>
+
+  <li class="c05"><span>Should directories be treated
+  differently than ordinary files?</span></li>
+
+  <li class="c05"><span>How do users specify which
+  files/directories are excluded from versioning?</span></li>
+
+  <li class="c05"><span>How do you name versions of a
+  file?</span></li>
+
+  <li class="c05"><span>How do users specify searches across
+  many versions?</span></li>
+</ol>
+
+<br />
+
+<p class="c0"><span>This list of issues is incomplete, but
+hopefully helps you get going.</span></p>
+
+<br />
+
+<p class="c0"><span>You should analyze</span><span>&nbsp;your
+solution under three workloads both in terms of number of disk
+blocks read and amount of space used. The three workloads are:
+1) repeatedly writing to a small file; and 2) repeatedly writing
+a block of a large file; and 3) searching through all versions of
+a small file.</span></p>
+
+<br />
+
+<p class="c3 c0"><span class="c11">Challenge</span><span>: save
+space by extending your design to do</span> <span class=
+"c10">deduplication</span><span>&nbsp;across files: if a block
+appears twice in different files store it once. Addressing this
+challenge is not necessary to get an A, but may be
+fun.</span></p>
+
+<h2 class="c0 c8"><span>IV. Design Proposal</span></h2>
+
+<p class="c0"><span>The design proposal should be a concise
+summary (800 words) of your overall system design.</span></p>
+
+<br />
+
+<p class="c0"><span>The core of the proposal should be the design
+description. This section must include at least one graphic,
+correctly formatted with a caption and brief description. For
+example, it may be a good idea to illustrate the design of your
+data structures used to store versions.</span></p>
+
+<br />
+
+<p class="c0"><span>You do not have to present a detailed
+rationale or analysis in your proposal. However, if any of your
+design decisions are unusual (particularly creative,
+experimental, or risky) or if you deviate from the requirements,
+you should explain and justify those decisions in your
+proposal.</span></p>
+
+<br />
+
+<p class="c3 c0"><span>You will receive feedback on your proposal from your TA
+in time to adjust your final report. You will also receive a writing program
+grade for your proposal, as well as feedback from your writing instructor that
+will help you improve the writing of the final report. The format and appearance
+of your proposal should conform to the</span> <span class="c5"><a class="c13"
+href="DP1StyleGuide13.pdf">DP1 style
+guide</a></span><span>.</span><p>
+
+
+
+<p class="c0"><span>Some writing considerations for the proposal (and report):</span></p>
+<ul>
+  <li>Does the proposal/report summarize the proposed system as a whole?
+
+  <li>Does the proposal/report make an argument in favor of the system (as opposed to a different design)?
+
+  <li>Is content organized in accordance with the guidelines?
+
+  <li>Do hierarchy and structure match guidelines and clearly signal the role of information?
+
+  <li>Do figures clarify or illustrate an essential concept presented in the text? Are figure properly formatted, labeled, and referenced?
+
+  <li>Does the document meet basic standards of professional grammar, syntax, spelling, etc?
+</ul>
+
+<p class="c0"><span>Here are a few tips:</span></p>
+
+<ol class="c9" start="1">
+  <li class="c05"><span>Use ideas and terms from the textbook
+  and papers when appropriate; this will save you space (you can
+  refer the reader to the relevant section of the textbook) and
+  will save the reader some effort.</span></li>
+
+  <li class="c05"><span>Before you explain the solution to any
+  given problem, say what the problem is.</span></li>
+
+  <li class="c05"><span>Before presenting the details of any
+  given design component, ensure that the purpose and
+  requirements of that component are well described.</span></li>
+
+  <li class="c05"><span>It's often valuable to illustrate an
+  idea using an example, but an example is no substitute for a
+  full explanation of the idea.</span></li>
+
+  <li class="c05"><span>You may want to separate the
+  explanation of a component's data structures from its
+  algorithms to access or use those data structures.</span></li>
+
+  <li class="c05"><span>Explain all figures, tables, and
+  pseudo-code; explain what is being presented, and what
+  conclusions the reader should draw.</span></li>
+</ol>
+
+<p class="c0 c14"></p>
+
+
+<h2 class="c0 c8"><span>V. Design Report</span></h2>
+
+<p class="c0 c2"><span>Your report should explain your design. It
+should discuss the major design decisions and tradeoffs you made,
+and justify your choices. It should discuss any limitations of
+which you are aware. You should assume that your report is being
+read by someone who has read this assignment, but has not thought
+carefully about this particular design problem. Give enough
+detail that your project can be turned over successfully to an
+implementation team. Your report should convince the reader that
+your design satisfies the requirements in</span> <span>Section
+III.</span></p>
+
+<h3 class="c0 c8"><span>V.A. Report organization</span></h3>
+
+<p class="c0"><span>Use this organization for your
+report:</span></p>
+
+<ol class="c9" start="1">
+  <li class="c05"><span>Title page: Give your report a title
+  that reflects the subject and scope of your project. Include
+  your name, email address, recitation instructor, section
+  time(s), and the date on the title page.</span></li>
+
+  <li class="c05"><span>No table of contents is
+  needed.</span></li>
+
+  <li class="c05"><span>Introduction: Summarize what your
+  design is intended to achieve, outline the design, explain the
+  major trade-offs and design decisions you have made, and
+  justify those trade-offs and decisions.</span></li>
+
+  <li class="c05"><span>Design: Explain your design. Identify
+  your design's main components, state, and algorithms. You
+  should sub-divide the design, with corresponding subsections in
+  the text, so that the reader can focus on and understand one
+  piece at a time. Explain why your design makes sense as well as
+  explaining how it works. Use diagrams, pseudo-code, and worked
+  examples as appropriate.</span></li>
+
+  <li class="c05"><span>Analysis: Explain how you expect your
+  design to behave in different use cases.</span> <span>What use
+  cases might pose</span> <span>problems for throughput, latency,
+  or even correctness? What do you expect to be the scalability
+  limits of your design?</span></li>
+
+  <li class="c05"><span>Conclusion: Briefly summarize your
+  design and provide recommendations for further actions and a
+  list of any problems that must be resolved before the design
+  can be implemented.</span></li>
+
+  <li class="c05"><span>Acknowledgments and references: Give
+  credit to individuals whom you consulted in developing your
+  design. Provide a list of references at the end using the IEEE
+  citation-sequence system ("IEEE style") described in the</span>
+  <span class="c5"><a class="c13" href=
+  "https://web.mit.edu/21.guide/www/toc.htm">Mayfield
+  Handbook</a></span><span>.</span></li>
+
+  <li class="c05"><span>Word count. Please indicate the word
+  count of your report at the end of the document. Captions of
+  figures should be included in the total word count.</span></li>
+
+  <li class="c05"><span>Footnotes. Please do not use footnotes
+  in your report.</span></li>
+</ol>
+
+<br />
+
+<p class="c0 c14">The writing suggestions for the proposal also apply to the report.</p>
+
+<h2 class="c0 c8"><span>V.B.</span> <span>How we evaluate your
+work</span></h2>
+
+<p class="c0"><span>Your recitation and writing instructors will
+assign your report a grade that reflects both the design itself
+and how well your report presents the design.</span>
+<span>&nbsp;The most important aspect of your design is that we
+can understand how it works and that you have clearly addressed
+the requirements and provided the elements listed in Sections III
+and V. Complicated designs that we cannot understand will not be
+graded favorably.</span></p>
+
+<p class="c0 c14"></p>
+
+<p class="c0"><span>Some overall content
+considerations:</span></p>
+
+<ol class="c9" start="1">
+  <li class="c05"><span>Design supports use cases and describes
+  how they work.</span></li>
+
+  <li class="c05"><span>Clean yet sufficient design, minimal
+  mechanism.</span></li>
+
+  <li class="c05"><span>Reasonable implementation
+  detail.</span></li>
+
+  <li class="c05"><span>Convincing space and performance
+  evaluation.</span></li>
+</ol>
+
+<br />
+
+<p class="c0"><span>The grading rubric for the final report is as
+follows:</span></p>
+
+<p class="c0 c14"></p><a href="#" name=
+"2a8395b46fc0fbad31abf63adee9169dd978b955"></a><a href="#" name=
+"0"></a>
+
+<table cellpadding="0" cellspacing="0" class="c12">
+  <tbody>
+    <tr>
+      <td class="c7">
+	<p class="c0"><span>Overall design</span></p>
+
+	<ul> <li> When
+	  implementation details are presented are they justified with reference
+	  to the overall purpose of the system?  <li> Is there any consideration of
+	  possible design alternatives and why the resulting ones were chosen?
+	</ul>
+
+      </td>
+
+      <td class="c7">
+	<p class="c0"><span>30</span></p>
+      </td>
+    </tr>
+
+    <tr> <td class="c7"> <p class="c0"><span>The degree to which the design
+      addresses the requirements and use cases</span></p>
+      <ul>
+	<li>Does the paper discuss all the stipulated use cases and demonstrate
+	the design meets the requirements?
+      </ul>
+
+    </td>
+
+    <td class="c7">
+      <p class="c0"><span>20</span></p>
+    </td>
+  </tr>
+
+  <tr>
+    <td class="c7">
+      <p class="c0"><span>Analysis of space and time
+      requirements</span></p>
+      <ul>
+	<li>Is the analysis quantitative and justified in terms of reasonable performance metrics for the underlying components (disk, network, processing, ...)
+      </ul>
+    </td>
+
+    <td class="c7">
+      <p class="c0"><span>20</span></p>
+    </td>
+  </tr>
+
+  <tr>
+    <td class="c7">
+      <p class="c0"><span>User experience</span></p>
+      <ul>
+	<li> Is the system behavior described in terms of what users would experience?
+      </ul>
+    </td>
+
+    <td class="c7">
+      <p class="c0"><span>15</span></p>
+    </td>
+  </tr>
+
+  <tr>
+    <td class="c7">
+      <p class="c0"><span>Quality of the figures that
+      illustrate the design</span></p>
+    </td>
+
+    <td class="c7">
+      <p class="c0"><span>5</span></p>
+    </td>
+  </tr>
+
+  <tr>
+    <td class="c7">
+      <p class="c0"><span>Overall presentation</span></p>
+    </td>
+
+    <td class="c7">
+      <p class="c0"><span>10</span></p>
+    </td>
+  </tr>
+</tbody>
+</table>
+
+<p class="c0 c14"></p>
+
+<p class="c0"><span>The items in the grading rubric are not
+independent: a design that we cannot understand will likely
+result in a low score for several items.</span></p>
+
+<p class="c0 c14"></p>
+
+<p class="c0"><span>85 and above is an A grade. &nbsp;Between 60
+and 85 is a B grade. &nbsp;You will have to hand in a design
+project to pass 6.033.</span></p>
+
+<h2 class="c0"><span>VIII. Collaboration</span></h2>
+
+<p class="c0"><span>This project is an individual effort. You are
+welcome to discuss the problem and ideas for solutions with your
+friends, but if you include any of their ideas in your solution
+you should explicitly give them credit. You must be the sole
+author of your report.</span></p>
+
+<h2 class="c0 c8"><span>IX. Clarifications</span></h2>
+<ul>
+  <li><span>Your design does not need to deal with
+  failures (e.g., power outages, disk failures, etc.), with
+  security concerns (e.g., user changing ownership of files and
+  directories), or with distributed aspects.</span></li>
+
+  <li><span>You can find previous examples of DP1
+  reports under the "Excellent Writing Examples" link on the
+  left-hand side of the course home page.</span></li>
+
+  <li><span class="c10">Late submission grading
+  policy</span><span>: Your DP1 report is due before 5pm on March
+  22, 2013. If you submit your DP1 report late, we will penalize
+  you one letter grade per 48 hours, starting from 5pm on the
+  submission day. For example, if you submit the report anywhere
+  from 1 minute to 48 hours late, and your report would have
+  otherwise received a grade of "A", you will receive a "B"; if
+  you submitted 49 hours late, you would receive a
+  "C".</span></li>
+</ol>
+</body>
+</html>

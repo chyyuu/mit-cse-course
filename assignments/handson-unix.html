@@ -1,0 +1,670 @@
+<html><head><title>6.033: Hands-on Assignment (UNIX)</title></head><body bgcolor="White" text="Black">
+
+<a name="top">
+<h4>
+<em>
+<p align="center">
+M.I.T. DEPARTMENT OF EECS
+</p>
+</em>
+</h4>
+</a>
+<!-- RULE: h-header -->
+
+<table width="100%">
+<tbody><tr>
+<td align="left"><strong>6.033 - Computer System Engineering</strong>
+</td><td align="right"><strong>UNIX Hands-On Assignment</strong>
+</td></tr></tbody></table>
+
+<hr>
+
+<h2>Hands-on 2: The UNIX Time-Sharing System</h2>
+
+<p>
+Complete the following hands-on assignment.  Do the activities
+described, and submit your solutions using the <a
+href="https://6033.scripts.mit.edu:444/submit.cgi">online submission site</a>
+by 11:59p.
+This assignment is longer than the DNS one.
+
+Before attempting this hands-on, you
+should read <a href="http://web.mit.edu/6.033/www/papers/indirect-unix.shtml">The Unix
+Time-Sharing System</a>, which is also assigned for this recitation.
+You might also find Section 2.5 of the book useful for questions 8-19.
+</p>
+
+
+<h4>I. Warmup</h4>
+
+<p>Log into an Athena machine.  (athena.dialup.mit.edu is ok) and get
+access to the Athena command prompt.  If you logged into an Athena
+dialup machine, you should see the prompt in your ssh client.  If you
+logged into an Athena workstation you may need to open a terminal
+window.  The prompt should look something like this (the "<tt>no-knife</tt>" part may say something different):
+
+<blockquote><code>
+  no-knife:~> <font color="green"></font>
+</code></blockquote>
+
+<p>Use the <tt>add</tt> command to gain access to the 6.033 utilities
+you will use in this assignment.</p>
+
+<blockquote><code>
+  no-knife:~> <font color="green">add 6.033</font>
+</code></blockquote>
+
+<p>Some of the directions in this hands-on assume your UNIX shell is
+<tt>tcsh</tt>.  Run the
+following command to ensure you're running the appropriate shell.
+After you run "tcsh -f" your prompt will change to a single "<tt>></tt>".</p>
+
+<blockquote><code>
+  no-knife:~> <font color="green">tcsh -f</font>
+</code></blockquote>
+
+<p>
+We'll start off with an extremely simple example that most of you are
+probably familiar with already:
+
+</p><blockquote>
+<code>
+   athena% <strong>cd /bin</strong> <br>
+   athena% <strong>ls -1 | more</strong> <br>
+</code>
+</blockquote>
+
+Here, we are first changing into the /bin directory, which contains
+many of the executable commands for the system. The command <code>ls
+-1</code> gives us a listing of all the files in the current directory
+with one file per line. (Note that <code>-1</code> is the numeral
+"one", not the letter "L".) We then pipe the output from
+<code>ls</code> to the command <code>more</code>, which displays the
+results one page at a time. (Press the space bar to show the next
+page.) You can refer to the manual pages for <code>ls</code> and
+<code>more</code> to see more details and options for each
+command. Manual pages let you read information about various commands
+on UNIX systems; to use them, run
+
+<blockquote>
+<code>
+   athena% <strong>man <i>command</i></strong> <br>
+</code>
+</blockquote>
+
+<p>
+where <code><i>command</i></code> is the command you are interested
+in. If you are unfamiliar with manual pages, you may want to try
+running
+
+</p><blockquote>
+<code>
+    athena% <strong>man man</strong> <br>
+</code>
+</blockquote>
+
+for information on the man command itself.  Keep in mind that the
+manual pages for basic commands vary from system to system (much as
+the commands themselves do).
+<p></p>
+
+<p>
+Now, try this:
+
+</p><blockquote>
+<code>
+   athena% <strong>cd /bin</strong> <br>
+   athena% <strong>ls -1 | grep p | more</strong> <br>
+</code>
+</blockquote>
+
+This runs the same <code>ls -1</code> command, but only lists the
+executable files which happen to contain the letter "p" somewhere in
+their names.
+<p></p>
+
+<p>
+The point here is to observe that you can chain together multiple
+commands using the pipe character ( | ), and the output from each
+command will be passed to the input of the next, in left-to-right
+order. This allows you to treat any command that uses standard input
+and output as a primitive from which you can build more complex and
+useful commands.
+</p>
+
+
+<h4>II. Building Blocks</h4>
+
+<p>
+Now, we'd like you to figure out on your own how to solve some
+problems by chaining different commands together.
+</p>
+
+<p>
+If you aren't already familiar with these commands, you may want to
+briefly skim through their man pages to familiarize yourself with what
+they do. You will probably need to use some of the options for the
+different commands in order to solve these problems.
+</p>
+
+<p>
+Here are the commands you may find useful:
+
+<code>
+</code></p><pre>cat
+fmt
+grep
+head
+ls
+ps
+sort 
+tail
+top
+wc
+yes (*)
+</pre>
+
+
+<p></p>
+
+<p>
+(*) On some Athena machines, the <code>yes</code> command isn't
+available.  However, if you are doing this assignment on Athena you
+can use the command <code>gyes</code>, which is functionally
+equivalent. <code>gyes</code> is located in the "gnu" locker, so
+before you can use it you need to add the locker. You can do so with
+the following command:
+
+</p><blockquote>
+<code>
+  athena% <strong>add gnu</strong> <br>
+</code>
+</blockquote>
+
+<p></p>
+
+<p>
+(If you are curious about Athena's locker system, you can run
+<code>man lockers</code> for more information.  The command
+<code>whichlocker</code> can be used to determine which locker
+contains a given command.  The <code>whichlocker</code> command itself
+resides in the "outland" locker. For more info on other lockers, look at 
+this <a href="http://www.mit.edu/%7Easksipb/2004columns/2004-09-03-lockers/">SIPB article</a>)
+</p>
+
+<p>
+Once you have added the gnu locker, you can use <code>gyes</code>
+instead of <code>yes</code>. Some Athena machines seem to lack the
+manual pages for both <code>yes</code> and <code>gyes</code>
+(hereafter referred to just as <code>yes</code>). In case the man
+pages are missing on the machine you are using, here is a brief
+description of what <code>yes</code> does. <code>yes</code> is very
+simple; it just outputs a string repeatedly until killed. It takes
+either one or zero arguments; if you give it a string as an argument
+it will output that string until it is killed (you can kill a process by
+pressing control-c). If you give it no
+arguments, it will output the string "y" until it is killed, which
+explains why it is named <code>yes</code>.
+</p>
+
+
+<h4>Pipe questions</h4>
+
+<p>
+For each of the outputs listed below, find one sequence of commands
+connected by pipes that produces the output. For each problem, turn in
+the command sequence that you used to generate the requested
+output. (Do NOT turn in the output itself.)
+</p>
+
+<p><b>Question 1:</b>
+A listing of all processes that <i>you</i> are currently running on
+the Athena machine you are using, sorted by the command name in
+alphabetical order (i.e. a process running <code>acroread</code>
+should be listed before a process running <code>zwgc</code>). The
+output should consist <i>only</i> of the processes you are running,
+and nothing else (i.e. if you are running 6 processes, the output
+should only have 6 lines).  <br> </li>
+
+<p><b>Question 2:</b>
+The number of words in the file
+<code><strong>/usr/share/dict/words</strong></code> (*) which do not contain any of
+the letters a, e, i, o, or u.
+<p>
+[* Note: On some Unix/Linux systems, the dictionary has the filename <strong>/usr/dict/words</strong>]<br>
+
+
+<p><b>Question 3:</b>
+A <code>5x6</code> matrix of entries of alternating <code>1's</code> and <code>0's</code>.  It should look like this:
+<pre>1 0 1 0 1
+0 1 0 1 0
+1 0 1 0 1
+0 1 0 1 0
+1 0 1 0 1
+0 1 0 1 0
+</pre>
+<br>
+</li>
+
+<p><b>Question 4:</b>
+A "long" listing of the smallest 5 files in the
+<code><strong>/etc</strong></code> directory whose name contains
+the string ".conf", sorted by <i>increasing</i> file size.
+<br>
+</li>
+</ol>
+
+<p>
+Now we'd like to explore something slightly different, having to do
+with file redirection as discussed in section 6.2-6.4 of the
+paper. The authors explain that the following two commands are
+functionally equivalent (except that you have to remove the temp file
+afterwards in the second case):
+
+</p><blockquote>
+<code>
+  athena% <strong>ls | head -1</strong> <br>
+  athena% <strong>ls &gt; temp; head -1 &lt; temp</strong> <br>
+</code>
+</blockquote>
+
+<p></p>
+
+  <p><b>Question 5:</b>
+
+Try the above commands in a few different directories.  What happens if you
+try both of the commands in the <strong>/etc</strong> directory on athena?  
+How else can the second command not produce the same output as the first?  
+Can you think of any negative side effects that the second construction might
+cause for the user?  You might want to think about the commands you
+used to solve the first four questions and consider their behavior.
+
+
+<p>
+The UNIX paper authors explain in section 6.3 that a user can type two
+commands together in parenthesis separated by a semicolon, and
+redirect the output to a file. The file will then contain the
+concatenation of the two commands. The example from the paper is
+roughly:
+
+</p><blockquote>
+<code>
+   athena% <strong>(date ; ls) &gt; temp1 &amp;</strong> <br>
+</code>
+</blockquote>
+
+<p></p>
+
+<p>
+Note that this example uses the &amp; operator to run the process
+asynchronously.  That is, the shell will accept and run another
+command without waiting for the first to finish.  The authors also
+mention that one can use the &amp; operator multiple times on one
+line. For example, we can do almost the same thing:
+
+</p><blockquote>
+<code>
+   athena% <strong>(date &amp; ls) &gt; temp2 &amp;</strong> <br>
+</code>
+</blockquote>
+
+<p></p>
+
+<p>
+See if you can figure out for yourself what exactly the difference is
+between using ";" and "&amp;" in the examples above.
+</p>
+
+<p>
+Let's explore this for ourselves. First, we will write a very simple
+variation on the "yes" program that you encountered earlier on in this
+assignment. To do so, we will use the "command file" functionality
+described in section 6.4 of the paper. Most people call these command
+files "shell scripts", since they are essentially simple scripts that
+are executed by the shell.
+</p>
+
+<p>
+First, start up a copy of emacs editing a new file called "myyes".
+
+</p><blockquote>
+<code>
+   athena% <strong>emacs myyes</strong> <br>
+</code>
+</blockquote>
+
+<p></p>
+
+<p>
+Now, enter the following lines into your file:
+
+</p><blockquote>
+<pre>#!/bin/sh
+
+echo y
+sleep 1
+echo n
+</pre>
+</blockquote>
+
+<p></p>
+
+<p>
+Save the file and exit emacs. If you don't already know what the
+<code>echo</code> and <code>sleep</code> commands do, look them up in
+the man pages. Lastly, make the file executable by running the
+following command:
+
+</p><blockquote>
+<code>
+   athena% <strong>chmod a+rx myyes</strong> <br>
+</code>
+</blockquote>
+
+<p></p>
+
+<p>
+Now let's try running the following two commands:
+
+</p><blockquote>
+<code>
+  athena% <strong>(./myyes ;     ./myyes) &gt; temp3</strong> <br>
+  athena% <strong>(./myyes &amp; ./myyes) &gt; temp4</strong> <br>
+</code>
+</blockquote>
+
+<p><font size="-1"><em>Note:
+Some fast multicore machines may occasionally give unexpected answers, where
+some output is lost - originally unexpected even to the 6.033 staff. If this
+occurs for you on your home machine, you may want to think briefly about why
+this occurs.</em></font></p>
+
+<p><b>Question 6:</b>
+Compare the two temp files. Based on your understanding of
+file I/O in UNIX, what is going on here, and why?  Is this different
+from what you would expect? (If there is more than one difference
+between the two files, it is the ordering of the letters y and n that
+we are interested in).
+<br>
+
+<p><b>Question 7:</b>
+The paper describes the Unix system call interface in some
+detail.  In particular, the <tt>read</tt> and <tt>write</tt> system
+calls do not take the offset as an argument.  Why did the Unix
+designers not include the offset as an argument to <tt>read</tt>
+and <tt>write</tt>?  How would an application write to a specific
+offset in a file?
+
+<h4>Looking Around</h4>
+
+<p>When you log in, the system sets your <i>current working directory</i> to
+your <i>home directory</i>, your personal name space where you can create your
+own files, directories and links.  You can view the contents of your current
+working directory with the <tt>ls</tt> command (see above). Use the <tt>pwd</tt>
+command to learn the <i>absolute path</i> of your current working directory.
+This will tell you where you are in the directory name space even if you move
+around in the directories.</p>
+
+<blockquote><code>
+  > <font color="green">pwd</font>
+</code></blockquote>
+
+The output of <tt>pwd</tt> reveals where the Athena administrators
+store your home directory.  For example,
+<tt>/afs/athena.mit.edu/user</tt> tells us that the your home
+directory is stored as a user in the Athena name space.
+
+<p>The <tt>stat</tt> program reports detailed information about
+a file including its inode number, link count, file type
+and other metadata.  To use it, type <tt>stat</tt> followed by a file
+name at the command prompt.  Run <tt>stat</tt> on your home
+directory:</p>
+
+<blockquote><code>
+  > <font color="green">stat .</font>
+</code></blockquote>
+
+
+
+<h4>III. Creating Directories and Files</h4>
+
+<p>Now create a directory named <tt>6.033-handson2</tt> in your home
+directory using the <tt>mkdir</tt> command.  You
+can learn more about the <tt>mkdir</tt> command with <tt>man mkdir</tt>.
+
+<blockquote><code>
+  > <font color="green">mkdir 6.033-handson2</font>
+</code></blockquote>
+
+<p>Use <tt>ls</tt> to verify that the new directory exists.  Now
+change your current working directory to your new
+<tt>6.033-handson2</tt> directory using the <tt>cd</tt> command and
+verify that your working directory has changed using <tt>pwd</tt>.</p>
+
+<blockquote><code>
+  > <font color="green">cd 6.033-handson2</font><br>
+  > <font color="green">pwd</font>
+</code></blockquote>
+
+View the contents of your new directory using <tt>ls -a -l</tt>.
+<tt>ls</tt> normally hides the directories "." and "..", but the
+<tt>-a</tt> option forces it to show them.
+
+<blockquote><code>
+  > <font color="green">ls -a -l</font>
+</code></blockquote>
+
+<blockquote>
+<p><b>Question 8:</b> Change to the '.' entry in your new directory.
+What happens to your working directory?  Next, change to the '..'
+entry.  What happens to your working directory?</p>
+
+<p><b>Question 9:</b> Describe a scenario where you might need to use
+the '.' directory.
+</blockquote>
+
+
+<p>Change your current directory back to your new
+<tt>6.033-handson2</tt> directory and stat the current directory; note
+the link count.  Now create a couple files in your new directory
+using the <tt>touch</tt> command and stat the directory again.</p>
+
+<blockquote><code>
+  > <font color="green">stat .</font><br>
+  > <font color="green">touch foo bar</font><br>
+  > <font color="green">ls</font><br>
+  > <font color="green">stat .</font>
+</code></blockquote>
+
+<blockquote>
+<p><b>Question 10:</b> What has changed in the stat output and why has
+it changed?
+</blockquote>
+
+<p>Now create a subdirectory <tt>baz</tt> in <tt>6.033-handson2</tt>
+and stat the directory once more.</p>
+
+<blockquote><code>
+  > <font color="green">mkdir baz</font><br>
+  > <font color="green">stat .</font>
+</code></blockquote>
+
+<blockquote>
+<p><b>Question 11:</b> What has changed in the stat output this time
+and why has it changed?  Why does the link count only change when
+you create a new directory?
+</blockquote>
+
+
+<h4>IV. Creating Links</h4>
+
+<p>The <tt>ln</tt> command can create both hard links and soft
+(symbolic) links.  Read the man page for more information.
+
+<blockquote><code>
+  > <font color="green">man ln</font><br>
+</code></blockquote>
+
+<p>First stat your file <tt>foo</tt> and read the output information.
+Then create a hard-link named <tt>foo-lnk</tt> and stat both <tt>foo</tt>
+and <tt>foo-lnk</tt>.</p>
+
+<blockquote><code>
+  > <font color="green">stat foo</font><br>
+  > <font color="green">ln foo foo-lnk</font><br>
+  > <font color="green">stat foo</font><br>
+  > <font color="green">stat foo-lnk</font><br>
+</code></blockquote>
+
+<p>Note that everything about <tt>foo</tt> and <tt>foo-lnk</tt> is
+identical except for their names.  If you modify <tt>foo</tt>
+you will see the modifications in <tt>foo-lnk</tt>.</p>
+
+<blockquote><code>
+  > <font color="green">echo Hello >> foo</font><br>
+  > <font color="green">cat foo-lnk</font><br>
+</code></blockquote>
+
+
+<p>Now create a symbolic link to <tt>foo</tt> and note that the
+symbolic link differs from the original file in several ways.
+Creating the symbolic link does not increase the link count of
+<tt>foo</tt> and the symbolic link does not share an inode with
+<tt>foo</tt>.</p>
+
+<blockquote><code>
+  > <font color="green">stat foo</font><br>
+  > <font color="green">ln -s foo foo-slnk</font><br>
+  > <font color="green">stat foo</font><br>
+  > <font color="green">stat foo-slnk</font><br>
+</code></blockquote>
+
+<blockquote>
+<p><b>Question 12:</b> One reason for supporting symbolic links is to
+allow linking from one disk to another disk, but you can also create a
+symbolic link to a file on the same disk.  Name one advantage and
+one disadvantage of using symbolic links on the same disk.
+</blockquote>
+
+
+Now <tt>cd</tt> to the 6.033 Athena locker with the command:
+
+<blockquote><code>
+  > <font color="green">cd /mit/6.033</font><br>
+</code></blockquote>
+
+Your home directory is accessible by the path <tt>/mit/YOUR_USERNAME</tt>
+(replace YOUR_USERNAME with your username).  Try to change to your home
+directory with the command:
+
+<blockquote><code>
+  > <font color="green">cd ../YOUR_USERNAME</font><br>
+</code></blockquote>
+
+<blockquote>
+<p><b>Question 13:</b> What happened?  Why?
+</blockquote>
+
+
+Like your home directory, the 6.033 locker's absolute path is much
+longer than <tt>/mit/6.033</tt> and <tt>/mit/6.033</tt> is only a
+symbolic link.  You can learn the absolute path name by typing
+<tt>pwd</tt> or by typing:
+
+<blockquote><code>
+  > <font color="green">ls -l /mit</font><br>
+</code></blockquote>
+
+
+<blockquote>
+<p><b>Question 14:</b> You can reach the 6.033 locker with the path
+<tt>/afs/athena.mit.edu/course/6/6.033</tt>.  Why does Athena
+also provide the <tt>/mit/6.033</tt> symbolic link? </p>
+
+<p><b>Question 15:</b> How would you change the file system to make
+this command (<code><font color="green">cd /mit/6.033; cd ../YOUR_USERNAME</font></code>) actually change to your home directory? 
+
+</blockquote>
+
+<h4>V. The Search Path</h4>
+
+The UNIX shell has a configuration variable named PATH that tells the
+shell where to look in the file system for programs we type on the
+command line.  You can see your PATH variable with this command:
+
+<blockquote><code>
+  > <font color="green">echo $PATH</font><br>
+</code></blockquote>
+
+
+You can configure your shell to search the current working directory
+by adding '.' to the PATH using these commands:
+
+<blockquote><code>
+  > <font color="green">setenv OLDPATH $PATH</font><br>
+  > <font color="green">setenv PATH .:$PATH</font><br>
+</code></blockquote>
+
+Now, cd to <tt>/mit/6.033</tt> and run our demo program using the 
+following commands.  Your shell will find the "<tt>demo</tt>" program
+because it is in your working directory.
+
+<blockquote><code>
+  > <font color="green">cd /mit/6.033</font><br>
+  > <font color="green">demo</font><br>
+</code></blockquote>
+
+Oh no, something terrible just happened!  Just kidding, the demo
+program did not actually do anything.  Verify that nothing happened
+with <tt>ls</tt>.
+
+<blockquote><code>
+  > <font color="green">ls -l</font><br>
+</code></blockquote>
+
+<blockquote>
+<p><b>Question 16:</b> What happened to <tt>ls</tt>?  Why isn't it
+listing files like it did before?  (Hint: set your path back to its
+original state: <code><font color="green">setenv PATH $OLDPATH</font></code>)
+</blockquote>
+
+Usually, it is a bad idea of have '.' in your PATH, because it is easy
+to run the wrong programs by accident.  Instead, you can use '.' explicitly
+to run programs in your working directory like this:
+
+<blockquote><code>
+  > <font color="green">./demo</font><br>
+</code></blockquote>
+
+<blockquote>
+<p><b>Question 17:</b> How long did this assignment take you to
+complete up to this point? </p>
+</blockquote>
+
+<h4>VI. Extra Credit</h4>
+
+<blockquote>
+<p><b>Question 18:</b> Chapter 2.5 describes how (in UNIX) a file's
+inode maps to the file's data blocks using direct pointers and
+indirect blocks.  An alternative strategy, as used in FAT, stores a
+file's data as a linked list of FAT entries, each corresponding to a block (<i>cluster</i>).  Name one
+advantage and one disadvantage of the linked list strategy.</p>
+</blockquote>
+
+<blockquote>
+<p><b>Question 19:</b> Some shells like <tt>bash</tt> try to make '..' always
+work properly, namely, <tt>cd /mit/6.033; cd ../$USER</tt> will place you in
+your home directory.  Does <tt>bash</tt> always get this behavior correct?</p>
+</blockquote>
+
+
+<!-- RULE: h-footer -->
+<hr>
+
+<table width="100%">
+<tbody><tr>
+<td align="left"><b>Go to <a href="../index.shtml">6.033 Home Page</a></b>
+</td></tr></tbody></table>
+
+
+</body></html>

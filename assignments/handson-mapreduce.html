@@ -1,0 +1,145 @@
+<html><head><title>6.033: Hands-on Assignment (Mapreduce)</title></head><body bgcolor="White" text="Black">
+
+<a name="top">
+<h4>
+<em>
+<p align="center">
+M.I.T. DEPARTMENT OF EECS
+</p>
+</em>
+</h4>
+</a>
+<!-- RULE: h-header -->
+
+<table width="100%">
+<tbody><tr>
+<td align="left"><strong>6.033 - Computer System Engineering</strong>
+</td><td align="right"><strong>Mapreduce Assignment</strong>
+</td></tr></tbody></table>
+
+<hr>
+
+<h2>Hands-on 4: MapReduce</h2>
+
+<p>
+Complete the following hands-on assignment.  Do the activities
+described, and submit your solutions using the <a
+href="https://6033.scripts.mit.edu:444/submit.cgi">online submission site</a>
+by 11:59p.
+
+<p>This assignment asks you to write a simple parallel program with the <a
+      href="../papers/mapreduce-osdi04.pdf">MapReduce</a> library using a single-machine
+     python implementation.
+
+<p>This assignment involves programming.
+
+<h4>I. Warmup</h4>
+
+<p>Download the program <a href="mapreduce.py">mapreduce.py</a> and store it in a file
+<code>mapreduce.py</code>. Download <a
+href="http://patriot.net/users/bmcgin/kjv12.txt">an ASCII bible</a> and save it
+in kjv12.txt.  Then, run:
+<pre>
+$ python mapreduce.py kjv12.txt 
+</pre>
+
+After running for a little while, the output will be as follows:
+<pre>
+and 12846
+i 8854
+god 4114
+israel 2574
+the 1843
+for 1743
+but 1558
+then 1374
+lord 1071
+o 1066
+david 1064
+jesus 978
+moses 847
+judah 816
+jerusalem 814
+he 754
+now 643
+so 622
+egypt 611
+behold 596
+</pre>
+
+<p>Study <code>mapreduce.py</code>, in particular look at <code>Map</code> and
+<code>Reduce</code>, <code>doMap</code>, and <code>doReduce</code>.  Modify the
+program so that you can answer the following questions:
+
+<p><b>Question 1:</b> How many invocations are there to <code>doMap</code> and
+how many to <code>doReduce</code>?
+
+<p><b>Question 2:</b> Which invocations run in parallel? (Assuming there are
+enough cores.)
+
+<p><b>Question 3:</b> How much input (in number of bytes) does a single
+<code>doMap</code> process?
+
+<p><b>Question 4:</b> How much input (in number of keys) does a single
+<code>doReduce</code> process?
+
+<p><b>Question 5:</b> For which parameters of <code>maptask</code> and
+<code>reducetask</code> do you see speedup?  (You might see no speedup on a busy
+machine or a machine with a single core.)
+
+<h4>II. Reverse word index</h4>
+
+<p>Extend the program with a ReverseIndex class.  The <code>Map</code> function
+should produce for each word in the input a pair <code>(word, offset)</code>,
+where <code>offset</code> is the byte offset in the input file.  The
+<code>Reduce</code> function should output <code>(word, [(word, offset),
+...])</code>, sorted by offset.
+
+<p>While developing ReverseIndex, you want to use a small input file for which
+you know what the right answer is, so that you can quickly iterate to the
+correct solution.
+
+<p>Once you have a correct implementation, run it on the bible and look at the
+top 20 results. Your output should be as follows (without the top two entries "a" and "aaron"):
+
+<pre>
+aaronites [1817624, 1875693]
+abaddon [4789761]
+abagtha [2165842]
+abana [1643159]
+abarim [732687, 767117, 767187, 944076]
+abase [2304339, 2823950, 3322367, 3494485]
+abased [3830632, 4056754, 4075715, 4589626]
+abasing [4530190]
+abated [28468, 29098, 29656, 573980, 950776, 1106814]
+abba [3947502, 4412428, 4550068]
+abda [1495474, 2149589]
+abdeel [3121198]
+abdi [1785594, 2005637, 2096175]
+abdiel [1779568]
+abdon [1048236, 1135107, 1135327, 1789463, 1797454, 1797941, 1804405, 2036728]
+abednego [3468578, 3480066, 3482484, 3482731, 3482889, 3483421, 3483989, 3484242, 3484673, 3484736, 3485390, 3485499, 3485959, 3486358, 3486570]
+abel [14223, 14233, 14448, 14563, 15039, 15141, 15228, 17635, 1222829, 1448386, 1448550, 1449216, 3834153, 4040933, 4686214, 4695492]
+abelbethmaachah [1570895, 1700412]
+</pre>
+
+<p><b>Question 6:</b>: Submit your solution.
+
+<h4>Spare-time challenge</h4>
+
+<p>If you have spare time, you can could modify <code>mapreduce.py</code> to
+spawn processes remotely and shares intermediate output files through AFS.
+
+<p>
+
+
+<!-- RULE: h-footer -->
+<hr>
+
+<table width="100%">
+<tbody><tr>
+<td align="left"><b>Go to <a href="../index.shtml">6.033 Home Page</a></b>
+</td></tr></tbody></table>
+
+
+</body></html>

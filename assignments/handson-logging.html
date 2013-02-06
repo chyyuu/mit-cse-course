@@ -1,0 +1,300 @@
+<html><head><!--DOC TYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN"-->
+<title>Hands-on Assignment (WAL)</title>
+
+<body bgcolor="#ffffff" text="#000000">
+<a name="top">
+<h4>
+<em>
+<p align="center">
+M.I.T. DEPARTMENT OF EECS
+</p>
+</em>
+</h4>
+</a>
+<!-- RULE: h-header -->
+
+<table width="100%">
+<tbody><tr>
+<td align="left"><strong>6.033 - Computer System Engineering</strong>
+</td><td align="right"><strong>WAL Hands-On Assignment</strong>
+</td></tr></tbody></table>
+<hr>
+
+<h2>
+Hands-on 7: Write Ahead Log System
+</h2>
+
+<h3>Intro to wal-sys</h3> 
+
+<p>
+Complete the following hands-on assignment. Do the
+activities described, and submit your solutions using the <a
+href="https://6033.scripts.mit.edu:444/submit.cgi">online submission
+site</a> before 11:59p.
+
+<p>This hands-on assignment will give you
+some experience using a Write Ahead Log (WAL) system.  This system
+corresponds to the WAL scheme described in Section 9.3 of the textbook.
+You should carefully read that section before attempting this
+assignment.  You can do this hands-on on any computer that has a Perl
+language interpreter, but we will be able to answer your questions
+more easily if you run this on an Athena workstation.
+
+You can download the WAL system from <a href="wal-sys">here</a> (if
+your browser displays the file in a window instead of saving it, use
+"File -&gt Save As" to save the file).  The downloaded file is a Perl
+script named <i>wal-sys</i>. Before trying to run it, change its
+permissions to make it executable, for example by typing:
+
+
+</p>
+<blockquote>
+  <b><code>athena% chmod +x wal-sys</code></b>
+</blockquote>
+
+<p>The <i>wal-sys</i> script can be run as follows:
+</p><blockquote>
+<b><code>athena% wal-sys [-reset]</code></b>
+</blockquote>
+<p>Alternatively, you can run the script as:</p><blockquote>
+
+<b><code>athena% perl ./wal-sys [-reset]</code></b></blockquote>
+
+<p><i>Wal-sys</i> is a simple WAL system that models a bank's central
+database, implementing redo logging for error-recovery. <i>Wal-sys</i>
+creates and uses two files, named LOG and DB, in the current working
+directory. The "LOG" file contains the log entries, and the "DB" file
+contains all of the installed changes to the database.  </p> <p> After
+you start <i>wal-sys</i>, you can enter commands to manage recoverable
+actions and accounts. There are also commands to simulate a system
+crash and to print the contents of the "LOG" and "DB" files. All the
+commands to <i>wal-sys</i> are case sensitive. Since <i>wal-sys</i>
+uses the standard input stream, you can use the system in batch
+mode. To do this, place your commands in a file ("cmd.in" for example)
+and redirect the file to <i>wal-sys</i>'s standard input:<br>
+
+</p><blockquote>
+  <b><code>athena% wal-sys -reset &lt; cmd.in</code></b>.
+</blockquote>
+<p>When using batch mode, make sure that each command is followed by a
+newline character (including the last one).</p>
+
+When you restart <i>wal-sys</i>, it will perform a log-based recovery
+of the "DB" file using the "LOG" file it finds in the current working
+directory. The <b>-reset</b> option tells <i>wal-sys</i> to discard
+the contents of any previous "DB" and "LOG" files so that it can start
+with a clean initial state.
+
+
+<h3>Commands interpreted by wal-sys</h3>
+
+The following commands are used for managing recoverable actions and
+accounts: </p> <blockquote> <ul> <li><p><b><code>begin
+action_id</code></b><br>Begin a recoverable action denoted by
+<i>action_id</i>.  The <i>action_id</i> is a positive integer that
+uniquely identifies a given recoverable action.</p></li>
+
+    <li><p><b><code>create_account action_id account_name
+    starting_balance</code></b><br>Create a new account with the given
+    <i>account_name</i> and <i>starting_balance</i>. The first
+    argument specifies that this operation is part of recoverable
+    action <i>action_id</i>. The <i>account_name</i> can be any
+    character string with no white spaces.</p></li>
+    <li><p><b><code>credit_account action_id account_name
+    credit_amount</code></b><br>Add <i>credit_amount</i> to
+    <i>account_name</i>'s balance.  This command logs the credit and
+    holds it in a buffer until an <b><code>end</code></b> command is
+    executed for recoverable action <i>action_id</i>.</p>
+
+    </li><li> <p><b><code>debit_account action_id account_name
+    debit_amount</code></b><br>Reduce <i>account_name</i>'s balance by
+    <i>debit_amount</i>.  Like <b><code>credit</code></b>, this
+    command logs the debit and holds it in a buffer until an
+    <b><code>end</code></b> command is executed for recoverable action
+    <i>action_id</i>.</p>
+
+    </li><li> <p><b><code>commit action_id</code></b><br>Commit the
+      recoverable action <i>action_id</i>.  This command logs a commit
+      record.</p> </li><li> <p><b><code>checkpoint</code></b><br>Log a
+      checkpoint record.</p> </li><li> <p><b><code>end
+      action_id</code></b><br>End recoverable action <i>action_id</i>.
+      This command installs the results of recoverable action
+      <i>action_id</i> to the "DB".  It also logs an end record.</p>
+
+    </li>
+   </ul>
+</blockquote>
+
+<p>
+The following commands help us understand the dynamics of the WAL system:
+</p>
+
+<blockquote> <ul> <li> <p><b><code>show_state</code></b><br>Print out
+  the current state of the database.  This command displays the
+  contents of the "DB" and "LOG" files.</p>
+
+    </li><li> <p><b><code>crash</code></b><br>Crash the system.  In
+     this hands-on, we are only concerned about crash recovery, so
+     this is the only command we will use to exit the program.</p>
+     </li> </ul> </blockquote>
+
+<h3>Using wal-sys</h3>
+Start <i>wal-sys</i> with a reset: 
+
+<blockquote>
+<b><code>athena% wal-sys -reset</code></b><br>
+</blockquote>
+and run the following commands (sequence 1):
+
+<blockquote>
+<b><code>begin 1</code></b><br>
+<b><code>create_account 1 studentA 1000</code></b><br>
+<b><code>commit 1</code></b><br>
+<b><code>end 1</code></b><br>
+<b><code>begin 2</code></b><br>
+<b><code>create_account 2 studentB 2000</code></b><br>
+
+<b><code>begin 3</code></b><br>
+<b><code>create_account 3 studentC 3000</code></b><br>
+<b><code>credit_account 3 studentC 100</code></b><br>
+<b><code>debit_account 3 studentA 100</code></b><br>
+<b><code>commit 3</code></b><br>
+<b><code>show_state</code></b><br>
+<b><code>crash</code></b><br>
+</blockquote>
+
+<i>Wal-sys</i> should print out the contents of the "DB" and "LOG"
+files, and then exit.
+
+
+<p>Use a text editor to examine the "DB" and "LOG" files and answer
+the following questions (do not run <i>wal-sys</i> again until you
+have answered these questions): </p>
+
+<blockquote>
+
+<p><b>Question 1:</b> <i>Wal-sys</i>
+displays the current state of the database contents after you type
+<b><code>show_state</code></b>. Why doesn't the database show
+<i>studentB</i>?</p>
+
+<p><b>Question 2:</b> When the database recovers, which accounts
+should be active, and what values should they contain?  </p>
+
+<p><b>Question 3:</b> Can you explain why the "DB" file does not
+contain a record for
+<i>studentC</i> and contains the pre-debit balance for
+<i>studentA</i>?
+</p>
+
+</blockquote>
+
+<h3>Recovering the database</h3> When you run <i>wal-sys</i> without
+the <b><code>-reset</code></b> option it recovers the database "DB"
+using the "LOG" file. To recover the database and then look at the
+results, type: <blockquote> <b><code>athena% wal-sys</code></b><br>
+<b><code>> show_state</code></b><br> <b><code>> crash</code></b><br>
+
+</blockquote>
+
+</p>
+
+<blockquote>
+
+<p><b>Question 4:</b> What do you expect the state of "DB" to be
+after <i>wal-sys</i> recovers? Why?  </p>
+
+<p><b>Question 5:</b> Run <i>wal-sys</i> again
+to recover the database. Examine the "DB" file. Does the state of the
+database match your expectations? Why or why not?  </p>
+
+<p><b>Question 6:</b> During
+recovery, <i>wal-sys</i> reports the <i>action_id</i>s of those
+recoverable actions that are "Losers", "Winners", and "Done".  What is
+the meaning of these categories?</p>
+
+</blockquote>
+
+ 
+<h3>Checkpoints</h3>
+
+Start <i>wal-sys</i> with a reset:
+<blockquote>
+<b><code>athena% wal-sys -reset</code></b><br>
+</blockquote>
+and run the following commands (sequence 2):
+<blockquote>
+<b><code>begin 1</code></b><br>
+<b><code>create_account 1 studentA 1000</code></b><br>
+
+<b><code>commit 1</code></b><br>
+<b><code>end 1</code></b><br>
+<b><code>begin 2</code></b><br>
+<b><code>create_account 2 studentB 2000</code></b><br>
+<b><code>checkpoint</code></b><br>
+<b><code>begin 3</code></b><br>
+<b><code>create_account 3 studentC 3000</code></b><br>
+<b><code>credit_account 3 studentC 100</code></b><br>
+<b><code>debit_account 2 studentB 100</code></b><br>
+
+<b><code>commit 3</code></b><br> <b><code>show_state</code></b><br>
+<b><code>crash</code></b><br> </blockquote> <b>Note:</b> the remainder
+of this assignment is only concerned with sequence 2.  We will ask you
+to crash and recover the system a few times, but you should not run
+the sequence commands again. (Also note that in sequence 2, the
+command <b>debit_account 2 studentB 100</b> refers to action_id 2,
+not action_id 3!  This is not a typo).
+
+<blockquote>
+<p><b>Question 7:</b> Why are the results of recoverable action
+2's <b><code>create_account 2 studentB 2000</code></b> command not
+installed in "DB" by the <b><code>checkpoint</code></b> command on the
+following line?</p>
+</blockquote>
+
+<p>Examine the "LOG" output file.  In particular, inspect the
+CHECKPOINT entry.  Also, count the number of entries in the "LOG"
+file.  Run <i>wal-sys</i> again to recover the database.
+
+<blockquote>
+<p><b>Question 8:</b> How many lines were rolled back?  What is the
+advantage of using checkpoints?</p>
+</blockquote>
+
+<p>Note down the
+<i>action_id</i>s of "Winners", "Losers", and "Done".  Use the
+<b><code>show_state</code></b> command to look at the recovered
+database and verify that the database recovered correctly.  Crash the
+system, and then run <i>wal-sys</i> again to recover the database a
+second time.</p>
+
+<blockquote>
+<p><b>Question 9:</b> Does the second run of the recovery procedure
+(for sequence 2) restore "DB" to the same state as the first run?
+What is this property called?</p>
+
+<p><b>Question 10</b>: Compare the <i>action_id</i>s of
+"Winners", "Losers", and "Done" from the second recovery with those
+from the first.  The lists are different.  How does the recovery
+procedure guarantee the property from Question 9 even though the
+recovery procedure can change? (Hint: Examine the "LOG" file).</p>
+
+<p><b>Optional:</b> Wal-sys has a hitherto unmentioned option: if you type
+<b><code>wal-sys -undo</code></b> it will perform undo logging and
+undo recovery.  Try the above sequences again with undo logging to see
+what changes.</p>
+
+</blockquote>
+
+<br>
+
+<hr>
+
+<table width="100%">
+
+<tbody><tr>
+<td align="left"><b>Go to <a href="http://web.mit.edu/6.033/">6.033 Home Page</a></b>
+</td><td align="right">&nbsp;</td>
+</tr></tbody></table>
+
+</body></html>

@@ -1,0 +1,221 @@
+Operating system structure
+==========================
+
+[ slide: overall plan, next few lectures ]
+
+OS goals:
+  Multiplexing: run many programs.
+  Protection: enforce modularity between programs.
+    Buggy or malicious program shouldn't crash other programs.
+  Cooperation: allow programs to interact, share data.
+  Portability: allow the same program to run on different hardware.
+  Performance: help programs run fast.
+
+Two main techniques to achieve these goals:
+  Virtualization: interpose between program & hw, but provide same interface.
+    One physical memory, but give each program the illusion of its own memory.
+    Same for CPUs (next week's lecture) -- for now assume one CPU per program.
+  Abstraction: define new (typically hardware-independent) interfaces.
+    Only one disk, display, network card, etc.
+    Give applications a different abstraction: file system, windows, etc.
+
+Virtualizing memory.
+  Start with a single program.
+  Diagram: CPU, DRAM, 32-bit addresses.  DRAM stores code, data.
+    CPU loads and runs instructions (based on program counter).
+    CPU loads / stores other memory locations (based on instructions).
+  What if we store code and data for two programs?
+    One program's instructions can load / store other program's data!
+
+Enforcing modularity: virtual memory addressing.
+  Diagram: CPU, MMU, DRAM with code & data for two programs.
+    Inside the MMU is a logical table from virtual address to physical address.
+    CPU points to a "virtual" address, entry in MMU.
+    MMU points to a "physical" address, location in DRAM.
+  No way for CPU to refer to a physical address -- must go through MMU.
+  Plan: maintain a separate MMU table for each program.
+    Program 1's table only contains physical addrs for program 1's code + data.
+    Program 2's table only contains physical addrs for program 2's code + data.
+  Benefit: programs don't need to be written to avoid each other's addresses!
+    Both programs can use virtual address 0x1000, if they want.
+    Each program's MMU table will map it to its own physical address.
+
+How to represent this mapping?
+  Naive approach: one entry for each possible address (2^32).
+    Table would be too big: 4 bytes * 2^32 entries = 16GB.
+  Better approach: page tables (review from 6.004).
+    Instead of mapping individual addresses, map groups of addresses.
+    Typically, map 4KB of memory (i.e., 2^12 addresses) at a time.
+    This group is called a "page" of memory.
+    On a 32-bit system, this results in 2^20 different pages.
+    Table size is now manageable: 4 bytes * 2^20 entries = 4MB.
+
+Example of page-level translation.
+  Diagram: page table contains the following entries:
+    VA    PA
+    0  ->  3
+    1  ->  0
+    2  ->  4
+    3  ->  5
+  Processor issues LD R0, 0x2148.
+  CPU sends 0x2148 to MMU.
+  MMU uses top 20 bits to compute page number (0x2).
+  Translates virtual page number 2 into physical page number 4.
+  Page offset in low 12 bits (0x148) remains the same.
+  Physical address becomes 0x4148, sent to DRAM.
+
+Where to store this page table?
+  Page table is typically itself stored in memory.
+  The MMU has a register that stores the address of the current page table.
+  Note, as with DNS, need to bootstrap -- otherwise, chicken-and-egg problem.
+  MMU's page table register must have the _physical_ address of page table.
+
+Page table typically stores additional information about each entry.
+  [ slide: x86 page table entry ]
+  Present bit: is this virtual address valid?
+  Writable bit: are writes to this virtual address allowed?
+  User bit: can the program access this virtual address, or only the OS?
+    (A little more about this later..)
+
+  If access is not permitted, MMU triggers a "page fault".
+    Forces processor to execute a software handler.
+    Can either stop program & raise error, or update page table & resume.
+
+## Probably don't have time for this..
+Aside: in practice, page table is typically stored as multiple levels.
+  E.g., on a 64-bit system, a single table would again be prohibitively large!
+  Instead, store mappings in tree, conceptually similar to DNS (last lecture).
+  [ slide: x86 32-bit, 2-level mappings ]
+  [ slide: x86 64-bit, 4-level mappings ]
+
+Naming view of virtual memory.
+  Virtual addresses are names.
+  Physical addresses are values.
+  MMU performs lookup in a table.
+  Context is the pointer to the current table in the MMU.
+
+  Benefits of naming:
+    Hiding: program cannot access physical memory that's not in its page table.
+      Simply can't name it!
+    (Controlled) sharing: two page tables can map same physical page.
+    Indirection: can control where/how a program's memory is stored.
+      If two programs use same library, map library pages read-only in both PTs.
+      If we run out of physical memory, temporarily write pages to disk.
+      Program doesn't need to know about any of this.
+
+Demo: virtual memory in Linux.
+  $ cd /proc/self
+  $ less maps
+
+  $ cd /proc/$(pgrep evince | head -1)
+  $ less maps
+
+  Interesting things to point out:
+    - each process controls its own virtual addresses.
+    - shared libraries mapped into both processes, read-only.
+
+Can a determined program still access another program's memory?
+  So far, yes, because it could change the page table address register in MMU.
+  To prevent this, need to change the processor.
+    Two modes of execution: "user" mode (U) and "kernel" mode (K).
+    Processor maintains a "U/K" bit that stores current execution mode.
+    In user mode, processor does not allow modifying page table register.
+    In kernel mode, processor does allow it.
+    Code that executes in kernel mode is called the OS kernel.
+
+How does the processor transition between user and kernel mode?
+  Start running in kernel mode, boot up the OS kernel.
+  Kernel executes special instruction ("iret" on x86) to switch to user mode.
+  User mode should not be allowed to arbitrarily jump into kernel code!
+  Protected control transfer: interrupts.
+    CPU has table of handlers (PC addrs) for each interrupt.
+    When interrupt comes in, CPU switches to kernel mode & jumps to handler.
+    Page fault is another example of interrupt.
+    Interrupts can be explicitly invoked by user-mode instruction
+      ("int N" on x86), will see shortly why this is useful.
+  Kernel code must be paranoid about anything that user-mode code has access to.
+    E.g., cannot assume user-mode code has a valid stack, etc.
+
+How to protect the kernel's memory from user programs?
+  Strawman: switch page table pointer when switching to kernel mode.
+  In practice, kernel often needs to access memory of user program.
+  Alternative solution: use the "U" bit in page table entries.
+    Page table entries for kernel code & data don't have the "U" bit.
+    Those pages only accessible when executing in kernel mode.
+    Typically, kernel code & data located at the top of virtual address space.
+
+OS abstractions.
+  Virtualization works well for memory (& CPU).
+  Does not work as well for disk, display, network.
+    Why not?  Not portable, does not allow sharing, ...
+  OS kernel typically provides new abstractions for these devices.
+    Disk: file system.
+    Display: windows.
+    Network: TCP/UDP connections.
+
+What does an abstraction look like?
+  Typically presented as a set of function calls, called "system calls"
+  Major challenge: designing good abstractions!
+    Next two recitations will discuss Unix's choice of OS abstractions.
+  [ slide: example Unix application using the file system ]
+
+How to implement these abstractions?
+  Can we write functions like open() and read() in a library?  No!
+  Implementation of these functions requires direct access to the disk.
+    If kernel allows programs to access disk, buggy programs can corrupt disk.
+    Instead, we want programs to access disk _only_ via FS abstractions.
+  Approach: make each system call a separate interrupt into the kernel.
+    Kernel code will implement the abstraction's functions (open, read, ...).
+    Programs have no other way to access disk.
+
+Kernel is critical to enforcing modularity.
+  Kernel code must set up page tables for user programs.
+  Kernel code is responsible for enforcing abstractions (e.g., file system).
+  Any bug can potentially lead to a hole in our enforced modularity.
+
+## For next year, can stop here, move monolithic vs microkernel discussion to
+## the virtual machine lecture, and spend a bit more time on VM + abstractions.
+Structuring the kernel.
+  [ slide: complexity of Unix v6, recent Linux ]
+  Linux is effectively one large C program.
+  Internally, no enforced modularity or client/server separation.
+  Of course, lots of careful software engineering to make things work:
+    Object-oriented programming style.
+    Common interfaces between components.
+    E.g., all storage devices implement the same set of functions,
+      regardless of whether they're a USB drive, hard drive, CD, etc.
+  However, one bug can cause entire system to malfunction or crash.
+  This approach is often called a "monolithic" kernel.
+
+Can we apply the client/server idea to the kernel itself?
+  Yes: alternative design is often called a "microkernel".
+  Minimal amount of code running in kernel mode.
+    Just enough to set up page tables and allow programs to communicate.
+  All other abstractions are implemented by specialized programs.
+    These programs don't run in kernel mode, so can do limited damage.
+    Example: FS program, network program, window system program.
+    Usually called "services".
+  Instead of making system calls to kernel, send message to a service program.
+
+Advantages of microkernels:
+  Modularity between server programs: bug in network code doesn't crash FS.
+  Small kernel means fewer potential bugs that can crash everything.
+  If all interactions happen via messages, can transparently move over network.
+
+What happened to the microkernel idea?
+  Late 1980s: lots of initial enthusiasm.
+  Early 1990s: Mach microkernel implemented, rather slow.
+    Many messages, each message is much slower than a regular function call.
+  Often ended up with few large service programs, all critical.
+    E.g., one FS service program.
+    System not really usable if the FS crashes.
+    If FS bug corrupts your disk, who cares that kernel code wasn't buggy?
+    Splitting up into fine-grained services is possible, but hard work!
+  Can build microkernel-style services on top of monolithic kernel.
+    E.g., X server, DNS server, SQL database, print service, ...
+
+Alternative approach: virtual machines.
+  Will cover this idea in two weeks.
+
+[ slide: summary ]
+

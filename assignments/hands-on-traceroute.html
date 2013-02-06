@@ -1,0 +1,432 @@
+<html>
+<head>
+<title>6.033: Hands-on Assignment (Traceroute)</title>
+</head>
+
+<body bgcolor=White text=Black>
+
+<a name="top">
+<h3>
+<em>
+<p align="center">
+M.I.T. DEPARTMENT OF EECS
+</p>
+</em>
+</h3>
+</a>
+<!-- RULE: h-header -->
+
+<table width=100%>
+<tr>
+<td align=left><strong>6.033 - Computer System Engineering</strong>
+<td align=right><strong>Traceroute Hands-On Assignment</strong>
+</table>
+
+<hr>
+
+<h2>Hands-on 5: Internet Routes and Measuring Round Trip Times</h2>
+
+<p>
+<b>Note:</b><br> 
+Some students have reported having problems with running the traceroute command on the Debathena cluster machines. If you get the error 'traceroute: Command not found.', run the command
+</br>
+</p>
+
+<p>
+<blockquote><code>sudo apt-get install traceroute</code></blockquote> 
+</p>
+
+<p>
+to install it for the duration of a login session. Another option is ssh'ing into linux.mit.edu and then running the traceroute command.
+</p>
+
+<p>
+Complete the following hands-on assignment.  Do the activities
+described, and hand in the answers to the numbered questions at the
+<strong>beginning of recitation</strong>.
+As usual, submit your solutions using the <a href="https://6033.scripts.mit.edu:444/submit.cgi">online submission site</a>
+before recitation.
+</p>
+
+<p>
+In this assignment you will get a chance to experiment with two very
+useful and widely-used network diagnostic tools,
+<code>traceroute</code> and <code>ping</code>, to expose you to some of
+the interesting quirks in network routing and packet round trip
+times. 
+</p>
+
+<p>
+We recommend, but do not require, that you perform this assignment on
+Athena.  Please note that the TAs cannot guarantee tech support if you do not
+use an Athena workstation.  In either case, please make sure you use a
+workstation on the MIT network.  Some results may be quite different
+if you use an off-campus network.
+</p>
+
+
+<h3>
+<b>0. Measuring Round Trip Times With Ping</b>
+</h3>
+
+<p>
+In the first two exercises, you will use the ping utility to send
+echo requests to a number of different hosts.  The ping utility is one of
+the more useful utilities for testing a network.  It allows
+you to measure the time that it takes for a packet to travel through
+the Internet to a remote host and back.  The ping utility works
+by sending a short message, called an <i>echo-request</i>, to a host using
+the Internet Control Message Protocol (ICMP).  A
+host that supports ICMP (and most do) and receives an echo-request
+message simply replies by sending an
+<i>echo-response</i> back to the originating host.
+</p>
+
+<p> In many of the exercises, you will be referring to hosts via their
+DNS names rather than their IP addresses. (For more information about
+Internet hostnames and DNS, and how these relate to IP addresses, please
+see Section 4.4 of the course notes.) </p>
+
+<p>
+For more information about ping, look at the man page on ping and the
+specifications for ICMP, located in 
+<a href="http://www.ietf.org/rfc/rfc0792.txt">RFC 792</a>.
+Section 7.13.4 of the course notes describes ICMP as well.
+</p>  
+
+
+<blockquote><code>
+  athena% <font color="green">man ping</font>
+</code></blockquote>
+
+<p>
+To use the ping command on Athena, run a command such as:
+</p>
+
+<blockquote><code>   
+ athena% <font color="green">ping www.google.com</font>
+</code></blockquote>
+
+<p>
+If you run ping from a Sun workstation, you may have to use the <code>-s</code>
+option to get it to display the results that you want.  Type
+<code>machtype</code> to determine the type of machine you are using.
+If you have any more questions, see the man pages for more details
+on how to use ping.
+</p>
+
+<h4>
+<b>A. Round Trip Times:</b>
+</h4>
+
+<p> In the following two questions, you are asked to use the ping
+utility to measure the round trip times to several hosts on the
+Internet. </p>
+
+<p>
+For the following hosts, send 10 packets, each with a length
+of 56 data bytes.  <i>Note</i>: You may find that the packet responses are 64
+bytes instead of 56 bytes.  Look at 
+<a href="http://www.ietf.org/rfc/rfc0792.txt">RFC 792</a> to find
+ out the reason.
+</p>
+
+<p>
+The hosts are:
+</p>
+<pre>
+www.csail.mit.edu       
+www.berkeley.edu 
+www.uwa.edu.au
+www.kyoto-u.ac.jp
+</pre>
+
+
+<blockquote>
+<p><b>Question 1:</b>
+Indicate what percentage of packets sent resulted in a
+successful response.  For the packets from which you received a
+response, write down the minimum, average, and maximum round trip
+times in milliseconds.  Note that ping reports these times to you
+if you tell it how many packets to send on the command line.
+</p>
+</blockquote>
+
+<blockquote>
+<p><b>Question 2:</b>  
+Explain the differences in minimum round 
+trip time to each of these hosts.
+</p>
+</blockquote>
+
+
+<blockquote>
+<p><b>Question 3:</b>  
+Now send pings with 56, 512 and 1024 byte packets to the 4 hosts above. Write down the minimum, average,
+and maximum round trip times in milliseconds for each of the 12 pings. 
+Why are the minimum round-trip times to the same hosts different
+when using 56, 512, and 1024 byte packets?
+</p>
+</blockquote>
+
+
+
+<h4>
+<b>B. Unanswered Pings:</b>
+</h4>
+
+<p>
+For the following hosts, send 100 packets that have a length of
+56 data bytes.  Indicate what percentage of the packets resulted in a
+successful response.  <!-- For the packets that you received a response,
+write down the minimum, average, and maximum round trip times in
+milliseconds. -->
+</p>
+
+<pre>
+www.wits.ac.za         (University of the Witwatersrand, Johannesburg)
+www.microsoft.com 
+</pre>
+
+<blockquote> <p><b>Question 4:</b> For some of the hosts, you may not
+have received any responses for the packets you sent.  What are some
+reasons as to why you might have not gotten a response? (Be sure to
+check the hosts in a web browser.)  </p> </blockquote>
+
+
+<h3>
+<b>1. Understanding Internet routes using traceroute</b>
+</h3>
+
+<p>
+As the name implies, <code>traceroute</code> essentially allows you to
+trace the entire route from your machine to a remote machine. The remote
+machine can be specified either as a name or as an IP address.
+</p>
+
+<p>
+We include a sample output of an execution of traceroute and
+explain the salient features. The command:<br>
+</p>
+
+<blockquote>
+<code>   
+ % <font color="green">traceroute www.google.com</font>
+</code>
+</blockquote>
+
+<p>
+tries to determine the path from the source machine
+(<code>vinegar-pot.mit.edu</code>) to <code>www.google.com</code>. The
+machine encountered on the path after the first hop is
+<code>NW12-RTR-2-SIPB.MIT.EDU</code>, the next is
+<code>EXTERNAL-RTR-1-BACKBONE-2.MIT.EDU</code>, and so on. In all, it takes 13 hops
+to reach <code>py-in-f99.google.com</code>. The man page for
+traceroute (<code> athena% <font color="green">man traceroute</font>
+</code>) contains explanations for the remaining fields on each line.
+
+
+<pre>% <font color="green">traceroute www.google.com</font>
+traceroute: Warning: www.google.com has multiple addresses; using 64.233.167.99
+traceroute to www.l.google.com (64.233.167.99), 30 hops max, 40 byte packets
+ 1  NW12-RTR-2-SIPB.MIT.EDU (18.181.0.1)  0.476 ms  0.318 ms  0.237 ms
+ 2  EXTERNAL-RTR-1-BACKBONE-2.MIT.EDU (18.168.1.18)  0.827 ms  0.624 ms  0.753 ms
+ 3  EXTERNAL-RTR-2-BACKBONE.MIT.EDU (18.168.0.27)  1.097 ms  0.772 ms  0.887 ms
+ 4  207.210.142.233 (207.210.142.233)  0.578 ms  0.549 ms  0.713 ms
+ 5  207.210.142.1 (207.210.142.1)  0.750 ms  2.530 ms  1.178 ms
+ 6  207.210.142.2 (207.210.142.2)  5.886 ms  15.387 ms  5.762 ms
+ 7  64.57.29.21 (64.57.29.21)  24.732 ms  24.693 ms  24.695 ms
+ 8  72.14.236.215 (72.14.236.215)  31.733 ms  27.588 ms 216.239.49.34 (216.239.49.34)  27.810 ms
+ 9  66.249.94.235 (66.249.94.235)  12.495 ms 209.85.252.166 (209.85.252.166)  36.961 ms  26.459 ms
+10  216.239.46.224 (216.239.46.224)  33.736 ms  33.396 ms 209.85.248.221 (209.85.248.221)  26.130 ms
+11  66.249.94.133 (66.249.94.133)  26.126 ms 72.14.232.53 (72.14.232.53)  25.744 ms  25.611 ms
+12  66.249.94.133 (66.249.94.133)  26.183 ms  27.460 ms 72.14.232.70 (72.14.232.70)  37.800 ms
+13  py-in-f99.google.com (64.233.167.99)  28.249 ms  26.050 ms  26.398 ms
+</pre>
+
+<h4>
+<b>A. Basics:</b>
+</h4>
+
+
+<blockquote><p>
+<b>Question 5:</b>
+<p>In at most 50 words, explain how traceroute discovers a path to
+a remote host. The man page might be useful in answering this question.
+</p></blockquote>
+
+<h4>
+<b>B. Routine Asymmetries:</b>
+</h4>
+
+<p>
+For this exercise, you need to use the traceroute server
+at <a href="http://www.slac.stanford.edu/cgi-bin/nph-traceroute.pl">http://www.slac.stanford.edu/cgi-bin/nph-traceroute.pl</a>.
+When you view this web page, execute a traceroute (trace) to your
+machine (run <code>/sbin/ifconfig</code> to find the IP Address of your machine).  Run your local traceroute to whatever server Stanford tells you it is running traceroute from for this question. 
+<b>Note</b>: It is important to run this on an Athena machine. If the Stanford traceroute does not work, or if you get no reply after 2--3 minutes, you should try one of the other looking glass servers on this page:
+
+<a href="http://www.traceroute.org/#Looking%20Glass">http://www.traceroute.org/#Looking%20Glass </a>
+
+If you use a different server, make sure that you note in your hands-on that you used a different server than the question asked for. 
+</p>
+
+<p>
+Now run this on your machine:
+</p><code>athena% <font color="green">traceroute www1.slac.stanford.edu</font> 
+</code><br>
+</p>
+
+
+<blockquote><p>
+<b>Question 6:</b>
+Show the output of traceroute from each direction above.
+</p>
+</blockquote>
+
+<blockquote><p>
+<b>Question 7:</b>
+Describe anything unusual about the output. Are the
+same routers traversed in both directions?  If not, why might this happen?
+</p>
+</blockquote>
+
+<h4>
+<b>C. Blackholes:</b>
+</h4>
+
+<p>
+At the command prompt, type:
+</p>
+<code> athena% <font color="green">traceroute 18.31.0.200</font>
+</code>
+
+<blockquote><p>
+<b>Question 8:</b> 
+Show the output of the above command.  Describe
+what is strange about the observed output, and why traceroute gives
+you such an output.  Refer to the traceroute man page for useful
+hints.
+</p>
+</blockquote>
+
+<h3>
+<b>2. Border Gateway Protocol (BGP)</b>
+</h3>
+
+<p>For this last question on the topic of Internet routing, you need
+to refer to the BGP routing table data below.  This table shows all of 
+the BGP routing entries that a particular router (near the University of 
+Oregon) refers to when forwarding
+any packets to MIT (IP Address 18.*.*.*).  
+</p>
+
+<p>
+As described in the Internet
+routing paper, recall that BGP is a path vector protocol.  
+Each line of this table lists a distinct path from this router
+to MIT, from which it will choose one to use.
+The <code>Next Hop</code> field is the IP address of the router that
+forwards packets for each path listed in the table.
+The <code>Path</code> field is the list of autonomous systems the path
+traverses on its way to MIT.
+The other fields (<code>Metric, LocPrf, Weight</code>) may be used by the router to
+decide which one of the possible paths to use. 
+</p>
+
+<pre>
+BGP table version is 9993576, local router ID is 198.32.162.100
+Status codes: s suppressed, d damped, h history, * valid, &gt; best, i - internal,
+              S Stale
+Origin codes: i - IGP, e - EGP, ? - incomplete
+ 
+   Network          Next Hop            Metric LocPrf Weight Path
+*  18.0.0.0         216.140.8.59           413             0 6395 3356 3 i
+*                   216.140.2.59           982             0 6395 3356 3 i
+*                   141.142.12.1                           0 1224 22335 11537 10578 3 i
+*                   209.249.254.19         125             0 6461 3356 3 i
+*                   202.232.0.2                            0 2497 3356 3 i
+*                   209.10.12.125         8204             0 4513 3356 3 i
+*                   208.51.113.253                         0 3549 174 16631 3 3 3 i
+*                   209.123.12.51                          0 8001 1784 10578 3 i
+*                   209.10.12.156            0             0 4513 3356 3 i
+*                   195.66.224.82                          0 4513 3356 3 i
+*                   209.10.12.28          8203             0 4513 3356 3 i
+*                   203.181.248.233                        0 7660 11537 10578 3 i
+*                   64.50.230.2                            0 4181 174 174 174 16631 3 3 3 i
+*                   195.66.232.254                         0 5459 2649 174 174 174 16631 3 3 3 i
+*                   195.66.232.239                         0 5459 2649 174 174 174 16631 3 3 3 i
+*                   64.50.230.1                            0 4181 174 174 174 16631 3 3 3 i
+*                   194.85.4.55                            0 3277 8482 29281 702 701 3356 3 i
+*                   207.172.6.227           83             0 6079 10578 3 i
+*                   207.172.6.162           62             0 6079 10578 3 i
+*                   129.250.0.85            11             0 2914 174 16631 3 3 3 i
+*                   206.220.240.95                         0 10764 11537 10578 3 i
+*                   217.75.96.60                           0 16150 8434 3257 3356 3 i
+*                   66.185.128.48          514             0 1668 3356 3 i
+*                   206.24.210.26                          0 3561 3356 3 i
+*                   216.191.65.118                         0 15290 174 16631 3 3 3 i
+*                   216.191.65.126                         0 15290 174 16631 3 3 3 i
+*                   209.161.175.4                          0 14608 19029 3356 3 i
+*                   202.249.2.86                           0 7500 2497 3356 3 i
+*                   208.186.154.35           0             0 5650 3356 3 i
+*                   167.142.3.6                            0 5056 1239 3356 3 i
+*                   64.200.151.12                          0 7911 3356 3 i
+*                   195.219.96.239                         0 6453 3356 3 i
+*                   208.186.154.36           0             0 5650 3356 3 i
+*                   203.194.0.12                           0 9942 16631 174 174 174 16631 3 3 3 i
+*                   213.200.87.254          40             0 3257 3356 3 i
+*                   216.218.252.145                        0 6939 3356 3 i
+*                   216.18.63.137                          0 6539 174 16631 3 3 3 i
+*                   216.218.252.152                        0 6939 3356 3 i
+*                   195.249.0.135                          0 3292 3356 3 i
+*                   65.106.7.139             3             0 2828 174 16631 3 3 3 i
+*                   207.45.223.244                         0 6453 3356 3 i
+*                   207.246.129.14                         0 11608 6461 3356 3 i
+*                   207.46.32.32                           0 8075 174 16631 3 3 3 i
+*                   129.250.0.11             0             0 2914 174 16631 3 3 3 i
+*                   134.55.200.1                           0 293 11537 10578 3 i
+*                   193.0.0.56                             0 3333 3356 3 i
+*                   216.140.14.186           3             0 6395 3356 3 i
+*                   198.32.8.196           960             0 11537 10578 3 i
+*                   64.200.95.239                          0 7911 3356 3 i
+*                   196.7.106.245                          0 2905 701 3356 3 i
+*                   154.11.63.86                           0 852 174 16631 3 3 3 i
+*                   134.222.85.45            0             0 286 209 3356 3 i
+*                   213.140.32.146                         0 12956 174 16631 3 3 3 i
+*                   164.128.32.11                          0 3303 3356 3 i
+*                   213.248.83.240                         0 1299 3356 3 i
+*                   154.11.98.18                           0 852 174 16631 3 3 3 i
+*&gt;                  4.68.0.243               0             0 3356 3 i
+*                   204.42.253.253           0             0 267 2914 174 16631 3 3 3 i
+*                   206.186.255.223                        0 2493 3602 174 16631 3 3 3 i
+*                   193.251.128.22                         0 5511 3356 3 i
+*                   203.62.252.26                          0 1221 4637 3356 3 i
+*                   12.0.1.63                              0 7018 3356 3 i
+*                   144.228.241.81  4294967294             0 1239 3356 3 i
+
+
+</pre>
+
+<blockquote><p>
+<b>Question 9:</b> 
+From the path entry data, which Autonomous
+System (AS) number corresponds to MIT?
+</p>
+</blockquote>
+
+<blockquote><p>
+<b>Question 10:</b> 
+What are the Autonomous System (AS) numbers of each AS which advertises a direct
+link to MIT?
+</p>
+</blockquote>
+
+<p>If you'd like to explore BGP and Internet routing in more depth, 
+you may wish to take take <a href="http://nms.lcs.mit.edu/6.829">6.829 Computer
+Networks</a>.
+</p>
+
+<!-- RULE: h-footer -->
+<hr>
+</body></html>

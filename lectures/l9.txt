@@ -1,0 +1,262 @@
+Performance
+===========
+
+Performance and system design.
+  Performance requirements can significantly influence design.
+  Handling increasing load can require re-design.
+    dtechnology/dt does not always solve performance.
+    Not every aspect of the system improves (e.g., disk & network latency).
+    Requirements / load can grow as well.
+
+Approaching performance problems.
+  [ slide: simple server ]
+  Diagram: clients -- network -- server CPU -- server disk
+  Perhaps users complain the system is too slow.
+  What to do?
+  (1) Measure your system to find the bottleneck.
+      Could be any component: clients, network, server CPU, disk, ...
+      Best case: there's a dominating bottleneck.
+  (2) Relax the bottleneck.
+      Add hardware, change system design, ...
+
+Quantifying performance.
+  Throughput: requests/time, for many waiting requests.
+  Latency: time/request, for a single request.
+  Sometimes inverses of each other.
+    E.g., 1 request takes 0.1 seconds of CPU, 1 CPU => tput 10 req/s.
+  Often not inverses:
+    Concurrency: with 2 CPUs, 0.1 second latency => tput 20 req/s.
+      Recall pipelining from 6.004: a form of concurrency.
+    Queueing: 0.1 s/req, 10 jobs in queue => tput 10 req/s, latency 1 sec.
+
+For heavily-loaded systems, focus on throughput.
+  When a system is lightly loaded, added users can utilize idle resources.
+  Once system becomes busy, added users start to queue up.
+  As a result, latency in most systems increases as number of users goes up.
+  Graph: # users on x-axis, tput on y-axis, linear then flat (queueing).
+  Graph: # users on x-axis, latency on y-axis, ~zero then linear (queueing).
+  Focusing on throughput helps understand limitations of system.
+  (Latency can be important too -- can lead to poor usability!)
+
+Approaches to finding the bottleneck.
+  Measure utilization of each resource (CPU, disk, network, ..)
+    Profiling / sampling is a common approach.
+    Sometimes easy: e.g., CPU is 100% busy, disk is 20% busy.
+    Sometimes not: e.g., CPU is 50% busy, disk is 50% busy, but alternating.
+  Model the performance of your system.
+    E.g., say net should take 10 msec, CPU takes 50 msec, disk takes 10 msec.
+    Helpful in estimating bottlenecks in overall system design.
+    Helpful in debugging components that aren't performing as expected.
+  Guess.
+    In a complex system, bottlenecks may not be obvious.
+    Will have to iterate on guesses based on the above approaches (+ others).
+    Fix candidate bottleneck and see what happens.
+
+Fixing a bottleneck.
+  One possibility is making the application code itself more efficient.
+    E.g., better algorithms, fewer features, etc.
+    Can be important and can give significant wins.
+    But, 6.033 cannot help you here: this is application-specific.
+  Generally-applicable system performance techniques (what OS might provide):
+    * Batching.
+    * Caching.
+    * Concurrency.
+      - IO concurrency.
+      - Parallel hardware.
+    * Scheduling.
+
+Example performance analysis: disk throughput.
+  Disk is often the main bottleneck in real systems.
+  CPU throughput typically grows faster than disk throughput.
+  Critical to use disk effectively.
+
+Typical disk: Hitachi 7K400.
+  [ slide: 7K400 ]
+  400 GBytes.  7200 RPM.  5 platters, 10 heads.
+  [ ref: http://www.hitachigst.com/tech/techlib.nsf/techdocs/67E6793B17F602DF86256E460065F563/$file/7K400_spv1.7.pdf ]
+
+Structure of a disk:
+  [ slide: disk sectors ]
+  Several round platters, on a common rotating axle
+    7K400: 5 platters.
+  Continuously rotating while disk is powered up.
+    7K400: 7200 RPM == 120 rev/sec == 8.3 msec/rev.
+  Circular tracks on each side of each platter.
+    7K400: 88,283 tracks per platter.
+  Each track consists of sectors stored linearly along the track.
+    7K400: anywhere from 567 to 1170 sectors per track (inner to outer).
+  Disk arm has one head for each surface, all move together to some track.
+    Group of aligned tracks is called a "cylinder", can be read at same time.
+    7K400: 10 heads.
+  Disk heads read / write sectors on a track, as they rotate past it.
+    Each sector is 512 bytes: unit of read/write operation.
+    Each sector has a header with sector number and ECC.
+
+Time spent in a read/write operation:
+  "Seek" the arm to the desired track: depends on how far, ~1-15ms.
+    7K400: avg  8.2ms for read,  9.2ms for write (writes need more accuracy).
+  Wait for platter to "rotate" to desired sector under head: 0-8.3 msec.
+  Read or write bits as the platter rotates.
+    7K400: ~35-62MB/sec (inner to outer).
+
+Disk performance: reading a random 4KB block.
+  8.2ms seek + 4.1ms rotate + ~0.1ms read = 12.4ms.
+  4096 bytes / 12.4ms = 322 KB/s!
+  Less than 1% of time is spent reading data; 99% is spent moving disk.
+  Often a significant bottleneck in a system!
+
+Better disk performance: batching into large sequential transfers (many tracks):
+  0.8ms seek to next track + 8.3ms read entire track = 9.1ms.
+  1 track contains 1000 sectors * 512 bytes = 512KB.
+  Resulting throughput: 512KB/9.1ms = 55 MB/s.
+  Quite fast, nearly as fast as LAN (modern high-end disk maybe 10x faster).
+  Less likely to be a bottleneck in a system.
+
+Lesson: avoid random disk access!
+  If system reads/writes entire big files, lay them out contiguously on disk.
+    Hard to achive in practice.
+    FS must allocate contiguous sectors as application writes data.
+    Fragmentation gets in the way.
+  If system reads lots of small pieces of data, group them.
+    Unix FS: dir inode, dir entry, file inode, indirect block, data block.
+    Originally: each can be located in different part of the disk, many seeks.
+    Modern FSes: put dir+inodes+data on nearby tracks, minimize seeks.
+  [ slide: I/O bottleneck: this gets relatively worse over time ]
+  [ Aside: even with SSDs, sequential performance is much better than random,
+    but for different reasons, and random writes are much worse than reads. ]
+
+Caching.
+  Use DRAM (faster than disk) to remember recently-read sectors.
+    Most OS'es do this; a significant use of DRAM is caching.
+    Works well if system has spare CPU & DRAM, and a busy disk.
+  Diagram: table containing sector# and data.
+  Often don't know what will be accessed, so cache must guess what to keep.
+
+Quantifying performance benefit from caching.
+  Typically look at average access time:
+    hit_time * hit_rate + miss_time * miss_rate.
+  E.g., suppose we have 100 sectors, 90% accesses are for just 10 sectors.
+    If we have a cache that holds 10 sectors, hit_rate = 0.9, miss_rate = 0.1.
+    Suppose hit_time = 0ms, miss_time = 10ms.
+    Without cache: 10ms.
+    With cache: avg = 0ms*0.9 + 10ms*0.1 = 1ms.
+
+Eviction / replacement policy.
+  Many caches have a bounded size, so must evict to insert new data.
+  Goal: evict cache entry that's unlikely to be used soon.
+  Common policy: least-recently used (LRU).
+    Intuition: if used recently, likely to be used again.
+    Works well for popular data (e.g., Unix root directory).
+  LRU doesn't always work well: sequential access of data larger than cache.
+    Infact, LRU would evict all useful data too.
+    Better plan: random?  don't cache sequential access?
+
+Caching works well if all data fits in cache, or there's locality.
+  Temporal locality: small subset of data accessed frequently.
+    E.g., home directories of users that are currently logged in.
+    LRU policy works well.
+  Spatial locality: some pieces of data are accessed together.
+    E.g., all inodes in a directory (when user runs ls -l).
+    Policy that pre-loads nearby data works well.
+  Not all access patterns have locality: e.g., reading large files.
+
+Demo:
+  Simple web server: reads a 4KB file, performs some computation for 5 msec.
+
+  # ls -l htdocs/f?
+  # make flush
+  # time wc htdocs/f0
+
+  # make flush; ./httpd-base
+  % ./simpleclient -n 10
+
+  # make flush; ./httpd-cache
+  % ./simpleclient -n 10
+
+  # make flush; ./httpd-cache-even
+  % ./simpleclient -n 10
+
+Caching often cannot help with writes.
+  Reads are relatively easy to cache.
+  Writes often must go to disk, in case of crash (& to cache, for consistency).
+  Result: caching not as effective for write-intensive applications.
+  Worst case: many random writes.
+    E.g., mail server storing new messages in small files.
+  Will look at techniques later to cope with writes.
+    E.g., logging -- writing data to large sequential log.
+
+I/O concurrency.
+  Our demo web server alternates between computing & waiting for disk:
+    CPU:  --A--     --B--     --C--
+    Disk:      --A--     --B--     --C--
+  Both are idle half the time.
+  If we can overlap A's disk IO with B's CPU, can double throughput.
+  Requires a way to concurrently execute many activities: threads.
+    OS will call wait() while waiting for disk, let other threads run.
+    Disk interrupt will notify() when data is available.
+
+What if we don't have much CPU load?
+  Concurrency may still be a win: lets fast requests get ahead of slow ones.
+  Also implemented using threads.
+
+Demo:
+  # make flush; ./httpd-cache-even
+  % ./simpleclient -n 10
+
+  # make cpu-offline
+  # make flush; ./httpd-cache-even-concur
+  % ./simpleclient -n 10
+
+  Threads are also good for utilizing multiple CPUs.
+
+  # make cpu-online
+  # make flush; ./httpd-cache-even-concur
+  % ./simpleclient -n 10
+
+Scheduling.
+  Different orders of execution can lead to different performance.
+  Suppose many concurrent threads issue disk reads for sectors:
+    71 10 92 45 29
+  Naive algorithm will seek to each sector in turn: expensive.
+  Can sort by track, perform reads in order ("elevator algorithm"):
+    10 29 45 71 92
+  Shorter seeks (closer to 1ms than 8-15ms).
+  Larger backlog => smaller seek between adjacent requests.
+    Higher throughput with more load.
+  Drawback: unfair, an early request may be delayed until much later.
+
+Parallel hardware: what if one disk is not enough?
+  One approach: Use multiple disks in parallel.
+  How to split data across multiple disks?  Depends on original bottleneck.
+  Scenario 1: many requests (perhaps for small files).
+    Limited by disk seeks.
+    Put each record (e.g., file) on a single disk.
+    Allows multiple disks to seek to multiple records in parallel.
+  Scenario 2: few large reads.
+    Limited by sequential throughput.
+    Putting each record on one disk will not work: only one active at a time.
+    Stripe each record across disks:
+      First 1MB on disk 1, second 1MB on disk 2, third 1MB on disk 3, ..
+    When application issues large read, can read data from disks in parallel.
+
+Alternative approach: use a different storage technology.
+  Solid-state disk (SSD): flash memory that exports a disk interface.
+  Flash has no moving parts -- is it much faster than rotational disk?
+  OCZ Vertex 3: 256GB SSD disk.
+    Sequential read:  400 MB/sec.
+    Sequential write: 200-300 MB/sec.
+    Random 4K reads:  5700/sec (23MB/s)
+    Random 4K writes: 2200/sec (9MB/s)
+  Sequential access still much faster than random access.
+  Why is write performance noticeably worse?
+    Flash can only erase large units (e.g., 512KB): physical chip layout.
+    Writing a small block requires reading 512KB, modifying, writing back.
+    Modern SSDs have complex controllers that try to optimize this.
+    Will look at one technique useful here (logging) in later lectures.
+  Flash isn't always the answer:
+    Disk costs ~$100 for 2TB:  $0.05 per GB.
+    SSD costs ~$300 for 256GB: $1.00 per GB.
+    SSD is 20x more expensive than rotational disk!
+
+[ slide: important numbers to keep in mind ]
+

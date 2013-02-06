@@ -1,0 +1,327 @@
+<html>
+<head>
+<title>6.033: Hands-on Assignment (DNS)</title>
+
+<body bgcolor="#ffffff" text="#000000">
+<a name="top">
+<h4>
+<em>
+<p align="center">
+M.I.T. DEPARTMENT OF EECS
+</p>
+</em>
+</h4>
+</a>
+<!-- RULE: h-header -->
+
+<table width="100%">
+<tbody>
+<tr>
+<td align="left"><strong>6.033 - Computer System Engineering</strong></td>
+<td align="right"><strong>DNS Hands-On Assignment</strong></td>
+</tr>
+</tbody>
+</table>
+
+<hr>
+
+<h2>Hands-on 1: Internet Domain Name System</h2>
+<p>
+Complete the following hands-on assignment.  Do the activities
+described, and submit your solutions using the <a
+href="https://6033.scripts.mit.edu:444/submit.cgi">online submission site</a>
+by 11:59p.
+
+</p>
+
+<p>
+This hands-on exercise is designed to introduce you
+to the Internet's Domain Name System (DNS).
+You probably use DNS every day --- you used it
+to get to this page.  To prepare for this assignment, please read
+Section 4.4 of the class textbook, titled "Case study: The Internet
+Domain Name System (DNS)", which is also signed for recitation section.
+</p>
+<h4>Introduction</h4>
+<p>
+  A good tool for exploring DNS is
+  <code>dig</code>, short for Domain Information Groper.
+  <code>dig</code> should be available on all recent
+  Athena workstations.
+<p>
+Here is an example use of <code>dig</code>:
+  
+</p>
+<pre>
+adehnert@mint-square:~$ dig wikipedia.org
+
+; &lt;&lt;&gt;&gt; DiG 9.7.0-P1 &lt;&lt;&gt;&gt; wikipedia.org
+;; global options: +cmd
+;; Got answer:
+;; -&gt;&gt;HEADER&lt;&lt;- opcode: QUERY, status: NOERROR, id: 42867
+;; flags: qr rd ra; QUERY: 1, ANSWER: 1, AUTHORITY: 3, ADDITIONAL: 3
+
+;; QUESTION SECTION:
+;wikipedia.org.                 IN      A
+
+;; ANSWER SECTION:
+wikipedia.org.          572     IN      A       208.80.152.201      <b>(*)</b>
+
+;; AUTHORITY SECTION:
+wikipedia.org.          572     IN      NS      ns2.wikimedia.org.
+wikipedia.org.          572     IN      NS      ns1.wikimedia.org.
+wikipedia.org.          572     IN      NS      ns0.wikimedia.org.
+
+;; ADDITIONAL SECTION:
+ns0.wikimedia.org.      572     IN      A       208.80.152.130
+ns1.wikimedia.org.      572     IN      A       208.80.152.142
+ns2.wikimedia.org.      572     IN      A       91.198.174.4
+
+;; Query time: 0 msec
+;; SERVER: 127.0.0.1#53(127.0.0.1)
+;; WHEN: Tue Feb  5 03:08:21 2013
+;; MSG SIZE  rcvd: 159
+</pre>
+
+<p>
+  <tt>dig</tt> performs a DNS lookup and prints information
+  about the request and the response it received.
+  If you run <tt>dig</tt>, you may see results that differ from those
+  presented here.
+  At the bottom, we can see that the query was
+  sent to our default server (<code>127.0.0.1</code>), and that it
+  took roughly 0 milliseconds to respond. Most of the information we are
+  interested in is in the <code>ANSWER</code> section, marked with
+  a <b><code>(*)</code></b> above. Let's examine
+  that section more closely:
+
+<pre>        ;; ANSWER SECTION:
+        wikipedia.org.          572     IN      A       208.80.152.201      <b>(*)</b>
+<i>          name                 expire  class   type     data (IP)</i>
+</pre>
+
+  We can see that this result is of type <code>A</code>, an address
+  record: it is telling us that the IP address for the name
+  "<code>wikipedia.org</code>" is <code>208.80.152.201</code>. The
+  expiry time field "<code>572</code>" indicates that this
+  record/entry is valid for 572 seconds (about five minutes). You can ignore the
+  "class" field; this is nearly always <code>IN</code> for Internet.
+<p>
+  The <code>AUTHORITY</code> section contains records of type <code>NS</code>,
+  indicating the names of DNS servers that have name records for a
+  particular domain. Here, we can see that three DNS servers
+  (<code>ns0.wikimedia.org.</code>, <code>ns1.wikimedia.org.</code>
+  and <code>ns2.wikimedia.org.</code>) are responsible for
+  answering requests for names in the <code>wikipedia.org</code>
+  domain.
+  
+</p>
+<p>
+  We can ask a specific server (instead of the default) for information
+  about a host by using the following syntax:
+  
+</p>
+<pre>
+adehnert@mint-square:~$ dig @bitsy.mit.edu wikipedia.org
+
+; &lt;&lt;&gt;&gt; DiG 9.7.0-P1 &lt;&lt;&gt;&gt; @bitsy.mit.edu wikipedia.org
+; (1 server found)
+;; global options: +cmd
+;; Got answer:
+;; -&gt;&gt;HEADER&lt;&lt;- opcode: QUERY, status: NOERROR, id: 24050
+;; flags: qr rd ra; QUERY: 1, ANSWER: 1, AUTHORITY: 3, ADDITIONAL: 3
+
+;; QUESTION SECTION:
+;wikipedia.org.                 IN      A
+
+;; ANSWER SECTION:
+wikipedia.org.          2853    IN      A       208.80.152.201
+
+[output truncated]
+</pre>
+
+<p>
+The <code>rd</code>
+  (recursion desired) flag indicates that <code>dig</code> requested a recursive
+  lookup, and the <code>ra</code> (recursion available) flag indicates
+  that the server permits recursive lookups (some do not).
+
+  <p> <code>dig</code> only prints the final result of the recursive search.
+  You can mimic the individual steps of a recursive search 
+  by sending a request to a particular DNS server and asking for no
+  recursion, using
+  the <code>+norecurs</code> flag.  For example, to send a
+  non-recursive query to one of the root servers:
+  
+</p>
+<pre>adehnert@mint-square:~$ dig @a.ROOT-SERVERS.NET www.wikipedia.org +norecurs
+
+; &lt;&lt;&gt;&gt; DiG 9.7.0-P1 &lt;&lt;&gt;&gt; @a.ROOT-SERVERS.NET www.wikipedia.org +norecurs
+; (1 server found)
+;; global options: +cmd
+;; Got answer:
+;; -&gt;&gt;HEADER&lt;&lt;- opcode: QUERY, status: NOERROR, id: 51557
+;; flags: qr; QUERY: 1, ANSWER: 0, AUTHORITY: 6, ADDITIONAL: 12
+
+;; QUESTION SECTION:
+;www.wikipedia.org.             IN      A
+
+;; AUTHORITY SECTION:
+org.                    172800  IN      NS      a0.org.afilias-nst.info.
+org.                    172800  IN      NS      a2.org.afilias-nst.info.
+org.                    172800  IN      NS      c0.org.afilias-nst.info.
+org.                    172800  IN      NS      b0.org.afilias-nst.org.
+org.                    172800  IN      NS      b2.org.afilias-nst.org.
+org.                    172800  IN      NS      d0.org.afilias-nst.org.
+
+;; ADDITIONAL SECTION:
+a0.org.afilias-nst.info. 172800 IN      AAAA    2001:500:e::1
+a0.org.afilias-nst.info. 172800 IN      A       199.19.56.1
+a2.org.afilias-nst.info. 172800 IN      AAAA    2001:500:40::1
+a2.org.afilias-nst.info. 172800 IN      A       199.249.112.1
+c0.org.afilias-nst.info. 172800 IN      AAAA    2001:500:b::1
+c0.org.afilias-nst.info. 172800 IN      A       199.19.53.1
+b0.org.afilias-nst.org. 172800  IN      AAAA    2001:500:c::1
+b0.org.afilias-nst.org. 172800  IN      A       199.19.54.1
+b2.org.afilias-nst.org. 172800  IN      AAAA    2001:500:48::1
+b2.org.afilias-nst.org. 172800  IN      A       199.249.120.1
+d0.org.afilias-nst.org. 172800  IN      AAAA    2001:500:f::1
+d0.org.afilias-nst.org. 172800  IN      A       199.19.57.1
+
+;; Query time: 226 msec
+;; SERVER: 198.41.0.4#53(198.41.0.4)
+;; WHEN: Tue Feb  5 03:23:19 2013
+;; MSG SIZE  rcvd: 437
+</pre>
+
+As you can see, the server does not know the answer and instead
+provides information about the servers most likely to be able to
+provide authoritative information. In this case, the best the root
+server knows is the identities of the servers for
+the <code>org.</code> domain.
+
+<!-- <p>
+  Here are some exercises.  This hands-on
+  should be doable from any workstation that has <code>dig</code> or an equivalent
+  command, but if you try it anywhere other than on an Athena
+  workstation, and you run into something unexpected, the teaching
+  staff may not be able to help you figure out what is going on. -->
+<p>
+Here are some exercises.
+You should submit answers <em>only</em> to the
+questions asked. In particular, please do not include pages of output
+from <code>dig</code> unless specifically requested.  As usual, submit your solutions using the <a href="https://6033.scripts.mit.edu:444/submit.cgi">online submission site</a>, before recitation.
+
+</p>
+<h4>
+  I. Getting started
+</h4>
+<p>
+<ul>
+<li>
+  <strong>(1)</strong> Using <code>dig</code>, find the IP address
+  for <code>thyme.lcs.mit.edu</code>. What is the IP address?
+<li>  <strong>(2)</strong> The <code>dig</code> answer for <code>thyme</code>
+  includes a record of type <code>CNAME</code>.
+  In the terminology of chapter 4, what does <code>CNAME</code> mean?
+<li>  <strong>(3) </strong>What is the expiration time for 
+the <tt>thyme</tt> <tt>CNAME</tt> record?
+  <br>
+</ul>
+<p>
+<ul>
+<li> Run these commands to find what the computer
+you're using gets when it looks up "<tt>ai</tt>" and "<tt>ai.</tt>".
+<pre>
+dig +domain=mit.edu ai
+dig +domain=mit.edu ai.
+</pre>
+What are the two resulting IP addresses?
+<li>
+  <strong>(5)</strong> Why are the results different? Look at the man
+  page for dig to see what the +domain= parameter does.  Based on the
+  output of the two commands, what is the difference between the
+  DNS searches being performed for <code>ai</code>
+  and <code>ai.</code>?
+</ul>
+</p>
+
+<h4>
+  II. Understanding hierarchy
+</h4>
+<p>
+  For this problem, you will go through the steps of resolving a
+  particular hostname, mimicing a standard recursive query.
+  Assuming it knows nothing
+  else about a name, a DNS resolver will ask a well-known <em>root
+  server</em>. The root servers on the Internet are
+  in the domain <code>root-servers.net</code>. One way to get a list
+  of them is with the command:
+</p>
+<pre>athena% dig . ns
+</pre>
+
+<p>
+<ul>
+<li>
+  <strong>(6)</strong> Use <code>dig</code> to ask <em>one</em> of the root servers the
+  address of <code>lirone.csail.mit.edu</code>, <em>without</em>
+  recursion. What command do you use to do this?
+<li>
+  <strong>(7) </strong>It is unlikely that these servers actually know
+  the answer so they will <em>refer</em> you to a server (or list
+  of servers) that might know more.  Go through the hierarchy from the
+  root <b>without recursion</b>, following the referrals manually,
+  until you have found the address
+  of <code>lirone.csail.mit.edu</code>. What commands did you use to do this?
+What IP address did you find for <tt>lirone</tt>?
+<!--<li>
+  <strong>(10) </strong>What is the record returned in the <code>ANSWER
+  SECTION</code> of the final command?
+<li>
+  <strong>(11) </strong>How many iterations did it take to find the IP
+  address? What commands did you use for each one? -->
+</ul>
+</p>
+<h4>
+  III. Understanding caching
+</h4>
+These queries will show you how your local machine's DNS cache works.
+<ul>
+  <li><strong>(8)</strong>
+  Ask your default server for information, without recursion,
+  about the host <code>www.dmoz.org</code>. What command did you use?
+  Did your default server
+  have the answer in its cache? How do you know? How long did
+  this query take?  If this information was cached,
+  please find some other host name that is not cached and do this
+  section with that other host.
+  
+</li>
+  <li> <strong>(9) </strong>Now, ask your default server this same
+  query but <em>with</em> recursion. It should return an answer for you. How
+  long did this take?
+  
+</li>
+  <li><strong>(10) </strong>
+  Finally, ask your default server again without recursion. How long
+  does this request take? Has the cache served its purpose?
+  
+</li>
+<!--  <li>
+  <strong>(16) </strong>Watch the expiration time decrement on the
+  cache by repeating the previous step. If you wait long enough, you can
+  watch it return to the original state and then you can repeat this
+  cycle. A good host to play with for this might be
+  <code>ad.doubleclick.net</code>. If you look at this, do you notice
+  anything else interesting about the responses that you get back?£
+  </li>
+-->
+</ul>
+
+<!-- RULE: h-footer -->
+<hr>
+
+
+</body>
+</html>

@@ -1,0 +1,256 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+<title>6.033 / Preparation for Recitation 25</title>
+<meta http-equiv="pragma" content="no-cache">
+<link rel="stylesheet" href="../6033.css" type="text/css">
+
+<script type="text/javascript">
+    function autofill_email() {
+        var spans = document.getElementsByTagName("span");
+        for (i = 0; i < spans.length; i++) {
+            if (spans[i].className != "email_autofill")
+                continue;
+            spans[i].innerHTML = spans[i].innerHTML.replace(/ at /, "@");
+        }
+    }
+
+    function page_onload() {
+        autofill_email();
+    }
+</script>
+
+</head>
+
+<body bgcolor="#ffffff" text="#000000" onLoad="page_onload()">
+<table cols="3" width="100%" height="100%" border="0" cellspacing="0"
+cellpadding="0">
+  <tbody>
+    <!-- Header row -->
+    <tr height="40">
+      <td colspan="3">
+	<table width="100%" height="40" border="0" cellspacing="0"
+	       cellpadding="0">
+	  <tbody>
+	    <tr> 
+	      <td width="531" bgcolor="#000000">
+		<div align="left" class="titleHead header">
+		  <a name="top"><b>6.033: Computer Systems Engineering</b></a>
+		</div>
+	      </td>
+	      <td bgcolor="#8a0a0a" halign="center" valign="center" width="234">
+		<div align="center" class="titleHead header">
+		  <b>Spring 2012</b>
+		</div>
+	      </td> 
+	    </tr> 
+	  </tbody> 
+      </table>
+      </td> 
+    </tr> 
+    <!-- horiz line --> 
+    <tr> 
+      <td colspan="3" height="5" bgcolor="#8a0a0a"> <br> </td> 
+    </tr> 
+    <tr> 
+      <!-- Menu --> 
+      <td bgcolor="#8a0a0a" valign="top" width="180"> <table cols="2"
+							     rows="1"
+							     border="0"
+							     cellspacing="0"
+							     cellpadding="0"
+							     width="100%"
+							     height="100%">
+	  <tbody> 
+	    <tr> 
+	      <td valign="top">
+		<table cols="1" rows="1" border="0" cellspacing="0"
+				       cellpadding="0" width="100%"> 
+		  <tbody> 
+		    <tr> 
+		      <td> <div class="menuHead"> <a href="../index.shtml"
+			    class="menuItem"> Home /
+			    News</a></div></td>
+		    </tr> 
+		    <tr> 
+		      <td> <div class="menuHead"> <a href="../schedule.shtml"
+						   class="menuItem">Schedule</a> </div></td>
+		    </tr> 
+                    <tr>
+                       <td><div class="menuHead"><a href="https://6033.scripts.mit.edu:444/submit.cgi"
+                                                    class="menuItem">Submissions</a>
+                      </div></td>
+                      </tr>
+		    <tr> 
+		      <td>
+			  <hr>
+		      </td> 
+		    </tr> 
+		    <tr> 
+		      <td> <div class="menuHead"> <a href="../general.shtml"
+						   class="menuItem">General Information </a> </div></td>
+		    </tr> 
+		    <tr> 
+		      <td> <div class="menuHead"> <a href="../general.shtml#staff" class="menuItem">Staff List</a>
+		      </div></td> 
+		    </tr> 
+		    <tr> 
+		      <td> <div class="menuHead"> <a href="../sections.shtml" class="menuItem">Recitations</a>
+		      </div></td> 
+		    </tr> 
+		    <tr> 
+		      <td> <div class="menuHead"> <a href="../general.shtml#tas" class="menuItem">TA Office Hours</a>
+		      </div></td> 
+		    </tr> 
+		    <tr> 
+		      <td>
+			  <hr> 
+		      </td> 
+		    </tr> 
+		    <tr> 
+		      <td> <div class="menuHead"> <a href="http://www.piazza.com/mit/spring2012/6033" class="menuItem">Discussion / feedback</a>
+		      </div></td> 
+		    </tr> 
+		    <tr> 
+		      <td> <div class="menuHead"> <a href="../faq.shtml" class="menuItem">FAQ</a>
+		      </div></td> 
+		    </tr> 
+		    <tr> 
+		      <td> <div class="menuHead"> <a href="../errata.shtml " class="menuItem">Class Notes Errata</a>
+		      </div></td> 
+		    </tr> 
+		    <tr> 
+		      <td> <div class="menuHead"> <a href="../writing_examples.shtml" class="menuItem">Excellent Writing Examples</a>
+		      </div></td> 
+		    </tr> 
+		    <tr> 
+		      <td>
+			  <hr> 
+		      </td> 
+		    </tr> 
+		    <tr> 
+		      <td> <div class="menuHead"> <a href="http://mit.edu/6.033/2011/wwwdocs"
+						   class="menuItem">2011 Home</a><br> 
+		      </div></td> 
+		    </tr> 
+                    <tr>
+                      <td> <div class="menuHead">
+<a rel="license" href="http://creativecommons.org/licenses/by/3.0/us/"><img alt="Creative Commons License" style="border-width:0" src="http://i.creativecommons.org/l/by/3.0/us/88x31.png" /></a>
+<br>
+                      </div></td>
+                    </tr>
+		  </tbody> 
+	      </table></td> 
+	      <td width="3" bgcolor="#8a0a0a"> <br> </td> 
+	    </tr> 
+	  </tbody> 
+      </table></td> 
+      <!-- End Menu --> 
+      <td colspan="2"> <table border="0" cellspacing="0" cellpadding="0" width="100%" height="100%"> 
+	  <tbody> 
+	    
+	    <tr> 
+	      <td style="padding: 10px;" valign="top" align="left">
+
+
+
+<!-- ------------------ -->
+<!-- Begin Page Content -->
+
+<p class="TitleHead">Preparation for Class Presentations (Recitation 25)</p> 
+
+<p> <strong> Your team will present its oral report on Design Project
+    2 in the second-to-last recitation<sup>&dagger;</sup>.</strong></p>
+
+<p> In preparation for giving your talk during recitation, your
+    design team should prepare a 5-minute at-the-blackboard oral
+    presentation of your design.  Choose one of your members to
+    deliver this presentation.  (If you wish, you can divide up the
+    presentation among two or three members, but if you do that you
+    will need to work skillfully to keep from tripping over each other
+    in the short time available.)  You can assume that your audience
+    is <em>very</em> familiar with the problem to be solved, and has a
+    pretty good idea about the design space, so you do not need to
+    spend much of your time giving background or explaining the design
+    in detail. You should, however, make sure to explain the essential
+    ideas of your design with utmost clarity and precision. Avoid
+    low-level implementation details, and focus on the <i>key design
+    decisions and their implications</i>. Also explain what your group
+    thinks are your design's major strengths, weaknesses and
+    interesting design decisions.</p>
+
+<p> After presenting your design, the floor will be opened to the rest
+    of the section for a short period of questions, comments, and
+    critique of your design.  Design review is a commonly practiced
+    method of checking out designs and proposals. The goal of design
+    review is to be constructive, not destructive. Comments along the
+    lines of "this design is trash" are out of order.  Instead you
+    should try to come up with comments along the lines of "this
+    design doesn't handle X, but by incorporating Y
+    it would be more bullet proof" or "This design is excellent,
+    because it meets all of the stated goals and manages to add two
+    neat features, Y and Z."  You should try to enhance this goal by
+    maintaining a professional, collegial attitude during the
+    presentation and ensuing discussion.</p>
+
+<p> <b>Your group's grade on design project two will not take into
+    account your oral presentation.</b>  Instead, your presentation and
+    the comments you make in critiquing other designs will be
+    considered as part of your recitation grade.  And don't worry
+    about negative recommendations and misunderstandings by other
+    classmates that critique your design; they do <em>not</em> affect
+    your grade.</p>
+
+<p> Some design teams are split between two sections; those design
+    teams will make just one presentation, in the section belonging to
+    the majority of the team's members.  If you are a minority member
+    and have the hour available, you are welcome to attend the other
+    section.  If, in order for you to attend that other section, your
+    team should give its report at the beginning or end of the hour,
+    let your instructor know so that they can take that into
+    account when working out the presentation schedule.</p>
+
+<p> <font size="4"><b>Organizing a presentation:</b></font>
+
+<p> It is quite a challenge to make a short presentation that actually
+    communicates the things you really want to say, so it is a good
+    idea, as part of your preparation, to do a "dry run".  A dry run
+    is a practice presentation in front of a mirror or a small group
+    of friends, with a clock.  The dry run gives you a chance both to
+    find out if your talk is intelligible, and to assess whether or
+    not you have the timing right.</p>
+
+<p> A well-organized presentation will start off with a very brief
+    overview, will make use of the blackboard to illustrate
+    graphically how things work, and will make the most important
+    points early, so that if you do run out of time, what you don't
+    get to say will be less important.  Be careful not to get bogged
+    down in detail, and select carefully the things you do want to
+    talk about in depth.  You can expect a "thirty seconds left"
+    warning from your instructor; that is a good opportunity to
+    gracefully (and quickly) wrap up whatever current point you are
+    talking about, and move to a few closing words that remind the
+    audience why your design is a winner.</p>
+
+<hr width="30%">
+
+<p>&dagger; While this presentation falls during the last week of classes, in
+    consultation with the chair of the faculty we have determined that
+    the assignment falls in the spirit of the end-of-term rules.</p>
+
+<!--  End Page Content  -->
+<!-- ------------------ -->
+
+</td></tr> 
+<tr bgcolor="#999999" height="20">
+<td style="padding-left: 10px; padding-top: 10px; padding-bottom: 10px;">
+
+<p><font style="font-size: 12px;">
+	Questions or comments regarding 6.033? Send e-mail to the 6.033 staff at <span class="email_autofill">6.033-staff at mit.edu</span> or to the 6.033 TAs at <span class="email_autofill">6.033-tas at mit.edu</span>.
+</font></p> 
+
+<p><font style="font-size: 12px;">
+<b><a href="#top">Top</a></b> // <b><a href="../index.shtml">6.033 home</a></b> //
+
+</font></p></td></tr></tbody></table></td></tr></tbody></table> 
+</body></html>
+
