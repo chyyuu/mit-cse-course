@@ -1,3 +1,66 @@
+What is a system?
+6.033 is about the design of computer systems
+
+Systems=interaction set of components with a specified behavior at the interface with its
+environment
+
+example: Web Linux
+
+much of 6.033 will operate at design level
+	. relationships of components
+	. internals of components that help structure
+
+	
+Challengs: complexity
+	. Hard to define
+		. large # of components
+		. large # of connections
+		. irregular
+		. no short description
+		. many people required to design/maintain
+	. Complexity ...
+	
+Problem Types in Complex Systems
+	. Emergent properties
+	. Propagation of effects
+		. Small change -> big effects
+	. [Incommensurate] scaling
+		. Design...
+		
+	
+Using internet as a example to explain the complex of system (addr, routing, detect the collision)	
+...
+
+Sources of Complexity
+	. Many goals/requirements
+	. Interaction of features
+	. Performance
+
+Examples:Many goals/requirements  
+	. 1975 Unix Kernel: 10,500 lines of code
+	. 2008 Linux 2.6.24: 7,800,000 Total  
+
+Examples: interacting features, more complexity
+	. phone system
+		. call forwarding
+		. call number delivery blocking
+		. Automatic call back
+		. itemized billing
+	should think all possible conditions.
+
+Coping with complexity
+	. simplifyng design principles
+		. e.g., "avoid excessive generality"
+	. Modularity
+		. split up system, consider separately
+	. Abstraction (e.g., RPC£¬Transcations)
+		. Interface/hiding
+		. Helps avoid propagation of effects
+	. Hierarchy (e.g., DNS)
+	
+	. Layering (e.g., Internet)
+	
+		
 6.033 2011 Lecture 3: Client/server, RPC
 
 Modularity
@@ -38,7 +101,11 @@ Do languages enforce the call contract?
   C, C++: no (F and G can easily violate contract)
   Java: somewhat (prevents wild memory writes, allows memory exhaustion)
         has a history of enforcement bugs in its very complex runtime
-
+  Python: NO
+	. A type error in callee can fail caller
+  
+  Can we do more?
+	
 Enforced Modularity via Client/Server
   can we avoid sharing memory, CPU, resources altogether?
   yes:: put F and G on separate machines
@@ -145,6 +212,7 @@ RPC has been very successful
   hides messy message formatting
 
 RPC != PC  --  failures!
+
   despite syntactic similarity
   example: amazon web, warehouse back-end
   link is a TCP connection
@@ -206,6 +274,7 @@ RMI client code slide  (see below)
 We will worry a lot more about coping with failures later in course!
 
 Summary
+  Designing systems is diffcult
   Enforced modularity via C/S
   RPC automates details
   RPC semantics are different
