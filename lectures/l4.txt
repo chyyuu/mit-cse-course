@@ -1,6 +1,14 @@
 Naming in computer systems
 ==========================
 
+Dina Katabi give a talk and only use 3 slides, write 6 blackboards.
+
+and Frans, ... (8~10 Profs) also listen her lecture.
+
+
+
+-------------------------------------
+
 Recall from last lecture:
   Client-server model.
     [ slide: Java RMI code ]
@@ -12,6 +20,12 @@ Recall from last lecture:
   Exact details are different in each case, but there are some commonalities.
 
 This lecture: naming in computer systems.
+
+--Goal
+-Component of Naming
+-- Propertion
+-- Case study, NDS
+
   Typical goals.
   Abstract view of naming systems.
   Questions to ask about a naming system.
@@ -20,23 +34,35 @@ This lecture: naming in computer systems.
 
 What are names useful for?
   User-friendly identifiers.
-  Sharing.
+--Sharing.
     Multiple components or users can name a shared object.
     For example, multiple users can bid on the same item by naming it.
     Without names, client-server interface pass entire object by value.
-  Retrieval.
+--Retrieval.
     Accessing the same object later on, just by remembering the name.
-  Indirection.
+--Indirection.
     Component A only knows about a fixed name N.
     Can change what name N refers to without changing A.
     Desirable for some names, but maybe not others.
     E.g., probably good if we can redirect to another server.
           maybe not so great if we bid on different item.
-  Hiding.
-    Hide implementation details.
-    Access control: can access object only if you know the name.
+--Hiding.
+    Hide implementation detail
+    Security. Access control: can access object only if you know the name.
 
 [ slide: examples of names ]
+
+-- Name Space 
+  BIG CYCLE:
+
+-- Value Space
+
+Name --> Value  (i.g. URL --> IP addr) 
+
+Cotext: translate the Name to Value
+  -- embedded in the name
+  -- in a envrionment
+
   Register names
   IP addresses
   Host names: fully-qualified and relative
@@ -177,3 +203,4 @@ Overall, DNS has been quite successful.
 
 [ slide: summary ]
 
+  
