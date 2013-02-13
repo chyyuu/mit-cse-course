@@ -1,0 +1,8 @@
+lecture 1
+----------
+今天听了Frans Kaashoek的6.033第一堂课，14:00~15:00， 300多人的huge course! 对一群大二大三的学生，“系统设计”很难讲得让学生理解。Frans语速很快，讲多例子，没啥说的，只有一个好。听完估计英语听力会有很大提高！ 
+Modularity and Client/server 不好讲，概念很容易，但具体实现其实很难。这个课主要是介绍，课下的recitation meetings是需要了解细节的。可以认为主课是骨，recitation meetings是肉，二者结合才有血有肉，有粗有细。
+
+lecture 2
+---------
+6.033第二次课是Dina Katabi上的，整堂课用了3页ppt，shell demo 2次（nslookup,...），以DNS为例说明naming的各种特点等，写了6个黑板，不过没没有太多内容。比较浅显易懂。但如果把DNS了解清楚，则课堂内容是远远不够的，这也是可行阅读和讨论课（Recitation ）的作用。 Frans等6~8个Prof.旁听中。
