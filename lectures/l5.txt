@@ -1,5 +1,45 @@
 Operating system structure
 ==========================
+------------------------------------------
+slide has been changed. 
+
+use a simple program "parent fork child, and parent change a mem addr, can cann't break child"
+Talk a lot of Virtual Memory principle
+Talk about X86-32 two-level page table
+analysis memory of  'less' prog
+  . /proc/self/maps in Linux to analysis the virtual memory map
+  . include the disk address of a program
+  . heap
+  . shared library
+
+recall the name mechanism in last lecture
+ apply name 
+  - name = vir addr
+  - value = phy addr
+  - context = Page map
+  - lookup algorithm: ndex into page map
+ benefit
+  sharing
+  hiding
+  ...
+
+User and kernel mode
+  how to change between two modes
+  how to setup pagetable
+  how to protect kernel
+
+Filie system
+   use a simple program change DIR, read/write file
+   strace ls
+
+Kernel enforces modularity
+
+Key:
+  virtualization
+  Abstraction
+
+----------------------------------------------------
+
 
 [ slide: overall plan, next few lectures ]
 
