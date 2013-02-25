@@ -1,5 +1,48 @@
 Virtual machines
 ================
+Frans:lec6: 2-25-2013    
+
+Talk about OS structure & VMM
+
+use a kernel model to write random addr a random value in linux kernel  every 10 secs.
+
+There are a lot of kernel bugs 
+
+===Challenges
+
+-- comm cost is high
+-- isolate big component doesn't help
+-- sharing between subsystems is difficult
+
+== Why is Linux not a pure microkernel
+
+--- many dependencies between components
+--- redesign is challenging
+--- some services are run as user programs
+
+== Goal: isolation and compatibility
+-- idea: run different programs on different computers
+-- each computer has its on own kernel
+-- but, cannot afford that many computers
+
+== Approach: virtual machines
+
+== How to implement VMM
+-- emulation e.g. qemu
+---- emulation of CPU
+---- Goal: emulation fast
+        . idea: run most instrs directly
+---- kernel virtualization
+---- memory virtualization
+        . idea: extra level of page tables
+
+---- A solution: shadow page tables
+
+ >> talk about a lot of implementation of vmm
+ 
+-- summary:vm is better for isolation
+
+==================
 
 Recall from last few lectures:
   OS kernel helps run multiple programs on single computer.
