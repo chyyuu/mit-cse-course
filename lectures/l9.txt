@@ -1,6 +1,61 @@
 Performance
 ===========
+Frans::L7::02/27/13::Performance
+--------------------------------
+raining: few people
 
+Performance, Moore‘s Law sets a clear goal
+ . CPU tendency
+ . DRAM density tendency
+ . Disk Price/GB 3-~35% per year  (tendency)
+But
+ . Latency improves solwly  e.g. DRAM access latency 
+
+Approach to performance problem
+ . measure the system to find bottleneck
+ . Relax the bottleneck
+
+ -- Performance metrics
+   . throughput
+   . latency
+   
+ heavily-loaded systems
+
+case study: I/O bottleneck
+
+Batching
+
+Caching
+  -- replacement policy
+      . LRU
+
+When do caches work?
+
+example:
+in linux: a lot of small files
+
+echo 1 > /proc/sys/vm/drop_caches
+dd if = garbage of =/dev/null bs=1024k 2>/dev/null
+
+time wc htdocs/f0ue
+ real 064s
+ 
+next time
+time wc htdocs/f0
+ real 002s
+ 
+because cache in memory
+
+then use another example  simple httpd  and clients 
+
+-------
+caching often cannot help writes
+
+use several threads to overlap I/O
+
+-------
+SSD versus Disk      
+===========================================
 Performance and system design.
   Performance requirements can significantly influence design.
   Handling increasing load can require re-design.
