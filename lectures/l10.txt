@@ -1,5 +1,45 @@
 6.033 2011 Lecture 10: Networking Intro (6.02 in a single lecture)
+==============================
+Prof. Dina Katabi:3/4/13:network:
+First of 4 lectures on data networks
 
+--Network Organization
+
+--Natwork layer
+
+-- Scalability
+
+-- Modularity /Dealing with complexing
+
+Using a picture to demo Link Layer/IP layer/TCP layer/App 's connection and communication
+
+Using 2 pictures to demo routing (routing internal arch, the connections, how to set path?)
+  -- find a path
+  -- Opt, some metrix
+  -- No loops
+
+Distance Vector Routing
+
+
+Inter-Domain Routing
+ -- requirement
+   -- scalability
+   .. ploicy-compliant
+
+Ideafor scaling
+ -- Hierarchical Routing and Addressing
+ 
+MIT's IP addr : 18.X.X.X, which size may be bigger than that of China. 
+
+Address Aggregation
+
+MIT 18/8
+EECS 18.26/16
+CSAIL 18.26.128/17
+9th Floor in CSAIL  18.26.240/24
+
+
+==============================
 First of 4 lectures on data networks.
  Overview today: identify the problems and approach
   Dig into details over next 3 lectures.
