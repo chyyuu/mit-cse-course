@@ -6,3 +6,54 @@ Modularity and Client/server 不好讲，概念很容易，但具体实现其实
 lecture 2
 ---------
 6.033第二次课是Dina Katabi上的，整堂课用了3页ppt，shell demo 2次（nslookup,...），以DNS为例说明naming的各种特点等，写了6个黑板，不过没没有太多内容。比较浅显易懂。但如果把DNS了解清楚，则课堂内容是远远不够的，这也是可行阅读和讨论课（Recitation ）的作用。 Frans等6~8个Prof.旁听中。
+
+lecture 3
+---------
+6.033 lec 3: Fans 讲OS，用了1个小时，讲了OS key: virtualization, Abstraction. use simple code and linux to demo some concept (such as vm, filesystem, etc.) 对于没有上过os课的同学（大部分同学是3年级，现在是3年上，而os课是3年下的课程），感觉对学生有些难。
+
+lecutre 4
+---------
+LEC 4: Bounded buffer talk by Nickolai Zeldovich: Big voice! also use blackboard more then ppt. use code to demo the send/recv problem fist talk about buffer in kernel Then talk about implement then analysis Lock implement lock reenter, deadlock, etc talk atom instruction XCHG
+
+lecture 5
+---------
+6.033:Lec5: Nickolai Zeldovich:thread: Talk the little prog about thread, the implement of thread: yield, lock, struct (SP, state, CPU[],etc) for thread, the changing process of thread. Talk a lot of yield implement. Talk more details about OS.
+
+lecture 6
+---------
+Prof. Frans::lec6::2-25-2013 Talk about OS structure & VMM. use a kernel model to write random addr a random value in linux kernel every 10 secs. There are a lot of kernel bugs == Approach: virtual machines == ==How to implement VMM (CPU/MEM/IO(DISK)) == summary (VMM )
+
+
+lecture 7
+----------
+L7::02/27/13(raining=>relative few people)::Prof. Frans::Performance:: tendency:: cpu/dram/disk key problem: latency, throughput method::Batching, Caching, overlaping, new tech: SSD, etc Demo: measure reading files in linux
+
+lecture 8
+---------
+Prof. Dina Katabi:3/4/13:network:First of 4 lectures on data networks --Network Organization --Natwork layer -- Scalability MIT's IP addr : 18.X.X.X, and its IP addr size is bigger than all of China. :(
+
+lecture 9~11
+---------
+3/6/13:6.033:Prof. Dina:2nd~4th of 4 net lectures:  
+LEC 9: Routing and BPG 
+LEC 10: Transport layer: 
+LEC 11: Congestion control 
+逃课 :(
+下次恢复正常上课
+
+Recitation
+--------------------
+3/12/2013
+6.033::REC 5 for A: MapReduce
+Preparation: MapReduce paper
+小班，10多人，1个老师讲，这次是王曦讲，讲得头头是道。
+课堂充满相互的提问，每个人都要回答不同的问题，学生也可以提问。
+论文都是比较经典的学术文章，并没有由于是本科生就不鼓励读高水平论文了。
+感到即使是本科生，也是可以达到这样的要求的。
+这门课课程量很大，学生需完成主课（侧重概念，一周两次），Recitation（侧重论文，一周两次），tutor（侧重实验和动手，一周一次），等于每天都在上课。每个环节听了一点，感到学生压力比较大。
+国内这种方式很少看到。 :(
+
+
+
+
+
