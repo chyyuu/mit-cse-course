@@ -1,6 +1,34 @@
 #  -*- mode: org -*-
-#+STARTUP: indent
- 
+#+STARTUP: inden==========================
+new professor
+
+reason
+-----------------
+1 single part of failure
+2 high management overhead
+3  no obvioues contral server
+4 lack the abilit to aggregate client
+
+P2P
+- No cnetral server
+- How to find nodes/data
+- How to split data?
+- Fault Tolerance
+
+consistent hash (the key of DHT)
+ - lookup (key of key)
+ - get
+ - put
+ - join..
+
+other design summary
+- ....
+
+summary
+example: bittorrent
+example of lookup: chord 
+
+========================== 
 6.033 2011 Lecture 13: peer-to-peer systems
 
 * Today:
