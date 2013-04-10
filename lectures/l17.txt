@@ -1,4 +1,22 @@
 6.033 2012 Lecture 17: Isolation
+=====================================
+041013:Prof. Frans
+Serializability
+2 phase locking  : R/W locks, early release
+weaker semantics
+
+solution:  1 order locks, 2 detect deadlock, 3 abort one
+optimization:
+1 R/W lock
+2 read-committed isolation 
+
+Frans use the postgres db to demo the process of lock...
+
+[NOTICE] 
+1 I should read http://en.wikipedia.org/wiki/Isolation_(database_systems)
+2 http://epub.itpub.net/3/4.htm
+This is DB, not OS!
+=====================================
 
 Recall: goal is transactions: all-or-nothing and before-or-after atomicity.
   Both forms are about hiding implementation details.

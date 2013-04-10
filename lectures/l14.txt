@@ -2,7 +2,46 @@
 #+STARTUP: indent
  
 6.033 2012 Lecture 14: Fault-tolerant computing
+---------------------------
+04-01-13:Prof. Frans
 
+1 software fault
+2 hardware fault
+3 design fault
+4 operationalfault
+5 environmnent falut
+
+General approaches of Fault Tolerant Design
+
+  Reliable system out of unreliable components
+    mapreduce
+
+    tcp
+    DNS (name server)
+    BGP Border Gateway Protocol  
+
+  latent fault--> active fault  --> error
+  
+
+  1) Identify faults
+  2) Detect isolate it 
+  3) options
+   3.1 fail fast
+   3.2 fail safe
+   3.3 mask
+  
+  availability
+     |------MTTF--------|--------MTTR----------|-------------
+     |----------------MTBF---------------------|-------------
+
+
+  fault-tolerant system
+    persistent states          FS
+    non-persistent states      Proc, Memory
+
+smartctl -A /dev/sda>/tmp/x1
+   http://bbs.linuxtone.org/thread-1029-1-1.html  
+---------------------------
 * 6.033 so far: client/server
 fault isolation by avoiding propagation
   only benign mistakes (programming errors)

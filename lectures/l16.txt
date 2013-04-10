@@ -1,4 +1,48 @@
 6.033 2012 Lecture 16: Logging
+========================================
+040813:Prof. Frans. 
+logging
+
+property
+  all or noting 
+  atomcity
+
+Begin-->end
+Write --> log recode with old record
+abort
+commit -> log record
+
+read is terrible
+
+----------
+read(var)
+    return cell_read(var)
+
+write(var,value)
+    log.append(cur_itd, update, var, read(var),value)
+    cell_write(var,value)
+------------
+
+problem
+    log
+    install
+
+write ahead logging (WAL)
+
+Recovering cell storage from log
+
+fixed only once
+
+what happened when recovery failed?
+
+Recovery
+   apply changes?
+   undo changes?
+
+undo/redo logging
+
+根据ppt, 从简单到复杂，逐渐讲解logging的各自实现以应对这种情况
+========================================
 
 Recall from last time:
   Two kinds of atomicity: all-or-nothing, before-or-after

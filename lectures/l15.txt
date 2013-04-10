@@ -1,4 +1,22 @@
 6.033 2011 Lecture 15: Atomicity
+======================
+040313::Prof. Frans
+
+all-or-nothing & before-or-after atomicity
+
+bank as example
+
+use a program(python) to demo transaction
+
+shadow copy
+
+use  fs related calls to demo
+unlink, link, unlink
+rename....
+
+should read the ppt
+
+======================
 
 Plan: Atomicity
   all-or-nothing atomicity
