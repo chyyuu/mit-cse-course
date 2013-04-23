@@ -1,5 +1,19 @@
 6.033 2012 Lecture 19: Ordering and consistency
+=================================
+22,april, 2013::prof. Frans
+Replicated state machines (rsm)
+demo the python demo of rsm
 
+
+replica failed independent
+  But replicated bugs
+
+how to solve the network partition?
+
+---
+next week: paxos
+
+=================================
 Topics:
   Replication.
   Time.
