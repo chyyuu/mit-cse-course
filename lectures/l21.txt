@@ -1,5 +1,23 @@
 6.033 2012 Lecture 21: Security intro
-
+==========================
+29/04/13: Prof. Dina: first security course
+用风趣的例子介绍一些security的例子，
+  比如到教授办公室，用手机啥的记录一些something
+  IC card... open door
+  用了一个自己制作的wifi接收器 software radio. 
+  一个设备控制病人的心脏起勃器, 可kill person (用实验室demo了video)
+  
+  physical world vs computer world
+    common: modular, ...
+    diff: Internet connect milllions of computer
+  
+  security: negative goal
+  
+    1 policy: goal
+    2 threat model
+    3 mechanism
+    4 CAn policy be volated given the thread model?
+==========================
 Topics:
   Computer security challenges.
   Threat models.

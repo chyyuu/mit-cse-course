@@ -1,5 +1,22 @@
 6.033 2012 Lecture 22: Authentication, passwords.
+=======================
+5/1/2013::Prof. Dian
 
+Authenticate via passwards
+
+Client--Server
+  It's danger to store password into server
+  Crypt Hash (one-way function,  colision )
+       a<>b => H(a)<>H(b)
+
+
+讲了cookie的处理过程，并简单讲了如何解决。
+
+
+http://zh.wikipedia.org/wiki/Cookie
+说明了一些cookie的安全问题
+
+=======================
 Today: password case study.
   Most systems use some form of passwords for authentication.
   Will look at how different systems might use passwords.
